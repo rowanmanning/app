@@ -7,7 +7,7 @@ module.exports = {
 		complexity: [
 			'warn',
 			{
-				max: 8
+				max: 10
 			}
 		]
 	}
