@@ -1,10 +1,10 @@
 {
   "name": "@rowanmanning/app",
   "version": "0.0.0",
-  "description": "Build Koa apps with some of my preferences baked in",
+  "description": "Build Express applications with some of my preferences baked in",
   "keywords": [
     "app",
-    "koa"
+    "express"
   ],
   "author": "Rowan Manning (https://rowanmanning.com/)",
   "repository": {
@@ -18,18 +18,19 @@
     "node": ">=10"
   },
   "dependencies": {
+    "@rowanmanning/hijack-express-render": "^1.0.0",
+    "@rowanmanning/not-found": "^1.0.0",
+    "@rowanmanning/render-error-page": "^1.0.0",
     "@rowanmanning/renderer": "^1.0.0-beta.4",
-    "koa": "^2.7.0",
-    "koa-mount": "^4.0.0",
-    "koa-pino-logger": "^2.1.3",
-    "koa-router": "^7.4.0",
-    "koa-static": "^5.0.0"
+    "express": "^4.17.1",
+    "helmet": "^3.21.1",
+    "http-errors": "^1.7.3",
+    "morgan": "^1.9.1"
   },
   "devDependencies": {
     "@rowanmanning/eslint-config": "^1.2.0",
     "@rowanmanning/make": "^1.2.0",
-    "eslint": "^5.15.3",
-    "jest": "^24.5.0"
+    "eslint": "^5.15.3"
   },
   "main": "./lib/index.js",
   "scripts": {

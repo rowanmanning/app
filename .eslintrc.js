@@ -9,6 +9,12 @@ module.exports = {
 			{
 				max: 10
 			}
+		],
+		'max-statements': [
+			'warn',
+			{
+				max: 30
+			}
 		]
 	}
 };
