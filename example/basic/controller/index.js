@@ -1,15 +1,13 @@
 'use strict';
 
-module.exports = app => {
+module.exports = function initIndexController(app) {
+	const {router} = app;
 
-	app.router.get('/', (request, response) => {
+	// Create a route for the home page
+	router.get('/', (request, response) => {
 		response.render('home', {
-			title: app.name
+			title: 'Basic Example'
 		});
-	});
-
-	app.router.get('/500', (request, response, next) => {
-		next(new Error('Nope'));
 	});
 
 };

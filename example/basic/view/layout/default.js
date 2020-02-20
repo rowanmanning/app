@@ -2,7 +2,7 @@
 
 const {html} = require('../../../..');
 
-module.exports = (context, content) => {
+module.exports = function defaultLayout(context, content) {
 	return html`
 		<html lang="en">
 			<head>
