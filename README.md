@@ -65,6 +65,12 @@ The available options are:
   - **`viewSubPath`**: `String`. The path to look for application views in. Will be prepended with `options.basePath`. Defaults to `view`
   - **`viewNamespacePaths`**: `Object`. Key/value pairs of view namespaces, see the [Renderer documentation](https://github.com/rowanmanning/renderer#namespaces). Defaults to `{}`
 
+You can start the application with the `start` method:
+
+```js
+app.start();
+```
+
 ### Examples
 
 We provide a few example implementations which demonstrate different features:
