@@ -1,7 +1,7 @@
 
 # @rowanmanning/app
 
-Build websites.
+Build Express applications with all of my preferences baked in.
 
 ## Should I use this?
 
