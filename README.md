@@ -54,6 +54,7 @@ The available options are:
   - **`logger`**: `Object`. An object with log methods. Defaults to `console`
   - **`logger.info`**: `Function`. A function used to log information. Defaults to `console.info`
   - **`logger.error`**: `Function`. A function used to log errors. Defaults to `console.error`
+  - **`logger.debug`**: `Function`. A function used to log debug messages. Defaults to `console.debug`
   - **`modelSubPath`**: `String`. The path to look for application models in. Will be prepended with `options.basePath`. Defaults to `model`
   - **`name`**: `String`. The name of the application. Used in logs. Defaults to `App`
   - **`port`**: `Number`. The port that the application should run on. Defaults to the `PORT` environment variable or `8080` if it's not set.
