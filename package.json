@@ -15,7 +15,7 @@
   "bugs": "https://github.com/rowanmanning/app/issues",
   "license": "MIT",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "dependencies": {
     "@rowanmanning/hijack-express-render": "^1.0.0",

@@ -22,7 +22,7 @@ Not really. Unless you're Rowan Manning.
 
 This library requires the following to run:
 
-  * [Node.js](https://nodejs.org/) 10+
+  * [Node.js](https://nodejs.org/) 12+
 
 
 ## Usage
