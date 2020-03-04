@@ -6,5 +6,3 @@
 include node_modules/@rowanmanning/make/javascript/index.mk
 # [edit below this line]
 # ------------------------------------------------------------------------
-
-export EXPECTED_COVERAGE := 60

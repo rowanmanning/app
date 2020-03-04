@@ -9,7 +9,6 @@ describe('lib/app', () => {
 	let App;
 	let connectMongo;
 	let express;
-	let flexiBody;
 	let helmet;
 	let hijackExpressRender;
 	let mongoose;
@@ -31,9 +30,6 @@ describe('lib/app', () => {
 
 		express = require('../mock/npm/express');
 		mockery.registerMock('express', express);
-
-		flexiBody = require('../mock/middleware/flexi-body');
-		mockery.registerMock('./middleware/flexi-body', flexiBody);
 
 		helmet = require('../mock/npm/helmet');
 		mockery.registerMock('helmet', helmet);
@@ -442,10 +438,20 @@ describe('lib/app', () => {
 				assert.calledWith(express.mockApp.use, helmet.mockMiddleware);
 			});
 
-			it('creates and mounts flexiBody middleware', () => {
-				assert.calledOnce(flexiBody);
-				assert.calledWithExactly(flexiBody);
-				assert.calledWith(express.mockApp.use, flexiBody.mockMiddleware);
+			it('creates and mounts URL-encoded body parser middleware', () => {
+				assert.calledOnce(express.urlencoded);
+				assert.calledWith(express.urlencoded, {
+					extended: false
+				});
+				assert.calledWith(express.mockApp.use, express.urlencoded.mockMiddleware);
+			});
+
+			it('creates and mounts JSON body parser middleware', () => {
+				assert.calledOnce(express.json);
+				assert.calledWith(express.json, {
+					strict: false
+				});
+				assert.calledWith(express.mockApp.use, express.json.mockMiddleware);
 			});
 
 			it('creates a Mongo session store', () => {
