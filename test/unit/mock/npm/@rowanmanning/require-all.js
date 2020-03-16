@@ -2,6 +2,6 @@
 
 const sinon = require('sinon');
 
-const requireAll = sinon.stub().returns({});
+const requireAll = sinon.stub().returns([]);
 
 module.exports = requireAll;

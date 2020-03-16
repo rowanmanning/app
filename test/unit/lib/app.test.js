@@ -55,8 +55,8 @@ describe('lib/app', () => {
 		renderErrorPage = require('../mock/npm/@rowanmanning/render-error-page');
 		mockery.registerMock('@rowanmanning/render-error-page', renderErrorPage);
 
-		requireAll = require('../mock/npm/require-all');
-		mockery.registerMock('require-all', requireAll);
+		requireAll = require('../mock/npm/@rowanmanning/require-all');
+		mockery.registerMock('@rowanmanning/require-all', requireAll);
 
 		session = require('../mock/npm/express-session');
 		mockery.registerMock('express-session', session);
@@ -292,41 +292,39 @@ describe('lib/app', () => {
 				instance.models = {};
 				instance.db = mongoose.mockConnection;
 				instance.paths.model = 'mock-instance-model-path';
-				requireAll.returns({
-					FirstMock: {
-						isFirstMockSchema: true
+				requireAll.returns([
+					{
+						name: 'first/mock/name',
+						moduleExports: sinon.stub().returns('FirstMockSchema')
 					},
-					SecondMock: {
-						isSecondMockSchema: true
+					{
+						name: 'second/mock/name',
+						moduleExports: sinon.stub().returns('SecondMockSchema')
 					}
-				});
-				mongoose.mockConnection.model.withArgs('FirstMock').returns('FirstMockModel');
-				mongoose.mockConnection.model.withArgs('SecondMock').returns('SecondMockModel');
+				]);
+				mongoose.mockConnection.model.withArgs('FirstMockName').returns('FirstMockModel');
+				mongoose.mockConnection.model.withArgs('SecondMockName').returns('SecondMockModel');
 				instance.initModels();
 			});
 
-			it('requires all of the models, camel-casing the names and initialising them', () => {
+			it('requires all of the models and initialises them', () => {
 				assert.calledOnce(requireAll);
-				assert.isObject(requireAll.firstCall.args[0]);
-				assert.strictEqual(requireAll.firstCall.args[0].dirname, 'mock-instance-model-path');
-				assert.strictEqual(requireAll.firstCall.args[0].map, varname.camelcase);
-				assert.isFunction(requireAll.firstCall.args[0].resolve);
-
-				const model = sinon.stub();
-				requireAll.firstCall.args[0].resolve(model);
-				assert.calledOnce(model);
-				assert.calledWithExactly(model, instance);
+				assert.calledWithExactly(requireAll, 'mock-instance-model-path');
+				assert.calledOnce(requireAll.firstCall.returnValue[0].moduleExports);
+				assert.calledWithExactly(requireAll.firstCall.returnValue[0].moduleExports, instance);
+				assert.calledOnce(requireAll.firstCall.returnValue[1].moduleExports);
+				assert.calledWithExactly(requireAll.firstCall.returnValue[1].moduleExports, instance);
 			});
 
-			it('registers each of the model schemas with Mongoose', () => {
+			it('registers each of the model schemas with Mongoose, camel-casing the names', () => {
 				assert.calledTwice(mongoose.mockConnection.model);
-				assert.calledWithExactly(mongoose.mockConnection.model, 'FirstMock', requireAll.firstCall.returnValue.FirstMock);
-				assert.calledWithExactly(mongoose.mockConnection.model, 'SecondMock', requireAll.firstCall.returnValue.SecondMock);
+				assert.calledWithExactly(mongoose.mockConnection.model, 'FirstMockName', 'FirstMockSchema');
+				assert.calledWithExactly(mongoose.mockConnection.model, 'SecondMockName', 'SecondMockSchema');
 			});
 
 			it('stores created models on the `models` property', () => {
-				assert.strictEqual(instance.models.FirstMock, 'FirstMockModel');
-				assert.strictEqual(instance.models.SecondMock, 'SecondMockModel');
+				assert.strictEqual(instance.models.FirstMockName, 'FirstMockModel');
+				assert.strictEqual(instance.models.SecondMockName, 'SecondMockModel');
 			});
 
 			describe('when an error occurs during model initialisation', () => {
@@ -733,37 +731,31 @@ describe('lib/app', () => {
 				instance.controllers = {};
 				instance.db = mongoose.mockConnection;
 				instance.paths.controller = 'mock-instance-controller-path';
-				requireAll.returns({
-					FirstMock: {
-						isFirstMockController: true
+				requireAll.returns([
+					{
+						name: 'first/mock/name',
+						moduleExports: sinon.stub().returns('FirstMockController')
 					},
-					SecondMock: {
-						isSecondMockController: true
+					{
+						name: 'second/mock/name',
+						moduleExports: sinon.stub().returns('SecondMockController')
 					}
-				});
+				]);
 				instance.initControllers();
 			});
 
 			it('requires all of the controllers, camel-casing the names and initialising them', () => {
 				assert.calledOnce(requireAll);
-				assert.isObject(requireAll.firstCall.args[0]);
-				assert.strictEqual(requireAll.firstCall.args[0].dirname, 'mock-instance-controller-path');
-				assert.strictEqual(requireAll.firstCall.args[0].map, varname.camelcase);
-				assert.isFunction(requireAll.firstCall.args[0].resolve);
-
-				const controller = sinon.stub();
-				requireAll.firstCall.args[0].resolve(controller);
-				assert.calledOnce(controller);
-				assert.calledWithExactly(controller, instance);
+				assert.calledWithExactly(requireAll, 'mock-instance-controller-path');
+				assert.calledOnce(requireAll.firstCall.returnValue[0].moduleExports);
+				assert.calledWithExactly(requireAll.firstCall.returnValue[0].moduleExports, instance);
+				assert.calledOnce(requireAll.firstCall.returnValue[1].moduleExports);
+				assert.calledWithExactly(requireAll.firstCall.returnValue[1].moduleExports, instance);
 			});
 
-			it('stores initialised controllers on the `controllers` property', () => {
-				assert.deepEqual(instance.controllers.FirstMock, {
-					isFirstMockController: true
-				});
-				assert.deepEqual(instance.controllers.SecondMock, {
-					isSecondMockController: true
-				});
+			it('stores initialised controllers on the `controllers` property, camel-casing the names', () => {
+				assert.deepEqual(instance.controllers.FirstMockName, 'FirstMockController');
+				assert.deepEqual(instance.controllers.SecondMockName, 'SecondMockController');
 			});
 
 			describe('when an error occurs during model initialisation', () => {
