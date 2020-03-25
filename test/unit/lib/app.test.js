@@ -96,6 +96,8 @@ describe('lib/app', () => {
 				requestLogFormat: 'mock-request-log-format',
 				requestLogOutputStream: 'mock-request-log-output-stream',
 				sessionSecret: 'mock-session-secret',
+				trustProxy: 'mock-trust-proxy',
+				useSecureCookies: 'mock-use-secure-cookies',
 				viewNamespacePaths: 'mock-view-namespace-paths',
 				viewSubPath: 'mock-view-path'
 			};
@@ -422,6 +424,10 @@ describe('lib/app', () => {
 				assert.calledWithExactly(express.mockApp.set, 'json spaces', 4);
 			});
 
+			it('does not set the trust proxy option', () => {
+				assert.neverCalledWith(express.mockApp.set, 'trust proxy');
+			});
+
 			it('hijacks the Express render methods', () => {
 				assert.calledOnce(hijackExpressRender);
 				assert.calledWith(hijackExpressRender, express.mockApp);
@@ -471,6 +477,9 @@ describe('lib/app', () => {
 				assert.strictEqual(sessionOptions.secret, 'mock-session-secret');
 				assert.strictEqual(sessionOptions.store, connectMongo.mockMongoStore);
 				assert.calledWith(express.mockApp.use, session.mockMiddleware);
+				assert.isObject(sessionOptions.cookie);
+				assert.strictEqual(sessionOptions.cookie.sameSite, 'lax');
+				assert.strictEqual(sessionOptions.cookie.secure, 'mock-use-secure-cookies');
 			});
 
 			it('sets the `app` application local to the application instance', () => {
@@ -636,6 +645,10 @@ describe('lib/app', () => {
 					express.static.resetHistory();
 					renderErrorPage.resetHistory();
 					instance.initExpress();
+				});
+
+				it('sets the trust proxy option', () => {
+					assert.calledWithExactly(express.mockApp.set, 'trust proxy', 'mock-trust-proxy');
 				});
 
 				it('creates static middleware with the configured `publicCacheMaxAge` option', () => {
@@ -1097,6 +1110,22 @@ describe('lib/app', () => {
 
 		});
 
+		describe('.trustProxy', () => {
+
+			it('is set to `true`', () => {
+				assert.isTrue(App.defaultOptions.trustProxy);
+			});
+
+		});
+
+		describe('.useSecureCookies', () => {
+
+			it('is set to `undefined`', () => {
+				assert.isUndefined(App.defaultOptions.useSecureCookies);
+			});
+
+		});
+
 		describe('.viewNamespacePaths', () => {
 
 			it('is set to an empty object', () => {
@@ -1169,11 +1198,15 @@ describe('lib/app', () => {
 			defaultedOptions = {
 				env: 'mock-env',
 				requestLogFormat: 'mock-request-log-format',
+				trustProxy: 'mock-trust-proxy',
+				useSecureCookies: 'mock-use-secure-cookies',
 				mockDefaultedOptions: true
 			};
 			expectedOptions = {
 				env: 'mock-env',
 				requestLogFormat: 'mock-request-log-format',
+				trustProxy: 'mock-trust-proxy',
+				useSecureCookies: 'mock-use-secure-cookies',
 				mockDefaultedOptions: true
 			};
 			sinon.stub(Object, 'assign').returns(defaultedOptions);
@@ -1189,7 +1222,7 @@ describe('lib/app', () => {
 			assert.deepEqual(returnValue, expectedOptions);
 		});
 
-		describe('when `options.requestLogFormat is not defined', () => {
+		describe('when `options.requestLogFormat` is not defined', () => {
 
 			beforeEach(() => {
 				delete defaultedOptions.requestLogFormat;
@@ -1217,6 +1250,40 @@ describe('lib/app', () => {
 
 				it('sets `options.requestLogFormat` to "dev"', () => {
 					assert.strictEqual(returnValue.requestLogFormat, 'dev');
+				});
+
+			});
+
+		});
+
+		describe('when `options.useSecureCookies` is not defined', () => {
+
+			beforeEach(() => {
+				delete defaultedOptions.useSecureCookies;
+			});
+
+			describe('and `options.env` is "production"', () => {
+
+				beforeEach(() => {
+					defaultedOptions.env = 'production';
+					returnValue = App.applyDefaultOptions(userOptions);
+				});
+
+				it('sets `options.useSecureCookies` to `true`', () => {
+					assert.isTrue(returnValue.useSecureCookies);
+				});
+
+			});
+
+			describe('and `options.env` is "development"', () => {
+
+				beforeEach(() => {
+					defaultedOptions.env = 'development';
+					returnValue = App.applyDefaultOptions(userOptions);
+				});
+
+				it('sets `options.useSecureCookies` to `false`', () => {
+					assert.isFalse(returnValue.useSecureCookies);
 				});
 
 			});

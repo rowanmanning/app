@@ -63,6 +63,8 @@ The available options are:
   - **`requestLogFormat`**: `String`. The request log format, see the [Morgan documentation](https://github.com/expressjs/morgan) for more information. Defaults to `combined` when `options.env` is `production`, and `dev` when `options.env` is `development`
   - **`requestLogOutputStream`**: `Stream`. The stream to pipe request logs into. Defaults to `process.stdout`
   - **`sessionSecret`**: `String`. A secret used to sign session cookies with. If not set, sessions are disabled. Defaults to `null`
+  - **`trustProxy`**: Express [trust proxy](http://expressjs.com/en/api.html#trust.proxy.options.table) settings. This is only used if `options.env` is "production". Defaults to `true`
+  - **`useSecureCookies`**: `Boolean`. Whether to use secure cookies. Defaults to `true` when `options.env` is `production`, and `false` when `options.env` is `development`
   - **`viewSubPath`**: `String`. The path to look for application views in. Will be prepended with `options.basePath`. Defaults to `view`
   - **`viewNamespacePaths`**: `Object`. Key/value pairs of view namespaces, see the [Renderer documentation](https://github.com/rowanmanning/renderer#namespaces). Defaults to `{}`
 
