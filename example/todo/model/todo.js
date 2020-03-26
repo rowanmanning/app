@@ -1,7 +1,8 @@
 'use strict';
 
-module.exports = function initTodoModel(app) {
-	const {Schema} = app;
+const {Schema} = require('../../..');
+
+module.exports = function initTodoModel() {
 
 	return new Schema({
 		label: {

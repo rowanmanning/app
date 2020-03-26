@@ -211,22 +211,6 @@ describe('lib/app', () => {
 
 		});
 
-		describe('.Schema', () => {
-
-			it('aliases `mongoose.Schema`', () => {
-				assert.strictEqual(instance.Schema, mongoose.Schema);
-			});
-
-		});
-
-		describe('.SchemaType', () => {
-
-			it('aliases `mongoose.SchemaType`', () => {
-				assert.strictEqual(instance.SchemaType, mongoose.SchemaType);
-			});
-
-		});
-
 		it('calls `instance.initDatabase`', () => {
 			assert.calledOnce(instance.initDatabase);
 			assert.calledWith(instance.initDatabase);
@@ -1183,6 +1167,30 @@ describe('lib/app', () => {
 
 		it('aliases `Renderer.Partial`', () => {
 			assert.strictEqual(App.Partial, Renderer.Partial);
+		});
+
+	});
+
+	describe('.Schema', () => {
+
+		it('aliases `mongoose.Schema`', () => {
+			assert.strictEqual(App.Schema, mongoose.Schema);
+		});
+
+	});
+
+	describe('.SchemaType', () => {
+
+		it('aliases `mongoose.SchemaType`', () => {
+			assert.strictEqual(App.SchemaType, mongoose.SchemaType);
+		});
+
+	});
+
+	describe('.ValidationError', () => {
+
+		it('aliases `mongoose.Error.ValidationError`', () => {
+			assert.strictEqual(App.ValidationError, mongoose.Error.ValidationError);
 		});
 
 	});
