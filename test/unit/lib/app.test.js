@@ -9,6 +9,7 @@ describe('lib/app', () => {
 	let App;
 	let connectMongo;
 	let express;
+	let expressHttpToHttps;
 	let helmet;
 	let hijackExpressRender;
 	let mongoose;
@@ -30,6 +31,9 @@ describe('lib/app', () => {
 
 		express = require('../mock/npm/express');
 		mockery.registerMock('express', express);
+
+		expressHttpToHttps = require('../mock/npm/express-http-to-https');
+		mockery.registerMock('express-http-to-https', expressHttpToHttps);
 
 		helmet = require('../mock/npm/helmet');
 		mockery.registerMock('helmet', helmet);
@@ -82,6 +86,7 @@ describe('lib/app', () => {
 				basePath: '/mock-base-path',
 				controllerSubPath: 'mock-controller-path',
 				databaseUrl: 'mock-database-url',
+				enforceHttps: true,
 				env: 'mock-env',
 				logger: {
 					info: sinon.stub(),
@@ -427,6 +432,11 @@ describe('lib/app', () => {
 				assert.calledWith(express.mockApp.use, helmet.mockMiddleware);
 			});
 
+			it('creates and mounts redirectToHTTPS middleware', () => {
+				assert.calledOnce(expressHttpToHttps.redirectToHTTPS);
+				assert.calledWith(express.mockApp.use, expressHttpToHttps.mockMiddleware);
+			});
+
 			it('creates and mounts URL-encoded body parser middleware', () => {
 				assert.calledOnce(express.urlencoded);
 				assert.calledWith(express.urlencoded, {
@@ -671,6 +681,22 @@ describe('lib/app', () => {
 				it('creates session middleware with the in-memory store', () => {
 					assert.calledOnce(session);
 					assert.strictEqual(session.firstCall.args[0].store, session.mockStore);
+				});
+
+			});
+
+			describe('when `options.enforceHttps` is `false`', () => {
+
+				beforeEach(() => {
+					instance.options.enforceHttps = false;
+					expressHttpToHttps.redirectToHTTPS.resetHistory();
+					express.mockApp.use.resetHistory();
+					instance.initExpress();
+				});
+
+				it('does not create and mount redirectToHTTPS middleware', () => {
+					assert.notCalled(expressHttpToHttps.redirectToHTTPS);
+					assert.neverCalledWith(express.mockApp.use, expressHttpToHttps.mockMiddleware);
 				});
 
 			});
@@ -986,6 +1012,14 @@ describe('lib/app', () => {
 
 		});
 
+		describe('.enforceHttps', () => {
+
+			it('is set to `undefined`', () => {
+				assert.isUndefined(App.defaultOptions.enforceHttps);
+			});
+
+		});
+
 		describe('.env', () => {
 
 			it('is set to the `NODE_ENV` environment variable', () => {
@@ -1204,6 +1238,7 @@ describe('lib/app', () => {
 		beforeEach(() => {
 			userOptions = {mockUserOptions: true};
 			defaultedOptions = {
+				enforceHttps: 'mock-enforce-https',
 				env: 'mock-env',
 				requestLogFormat: 'mock-request-log-format',
 				trustProxy: 'mock-trust-proxy',
@@ -1211,6 +1246,7 @@ describe('lib/app', () => {
 				mockDefaultedOptions: true
 			};
 			expectedOptions = {
+				enforceHttps: 'mock-enforce-https',
 				env: 'mock-env',
 				requestLogFormat: 'mock-request-log-format',
 				trustProxy: 'mock-trust-proxy',
@@ -1228,6 +1264,40 @@ describe('lib/app', () => {
 
 		it('returns the defaulted options with some transformations', () => {
 			assert.deepEqual(returnValue, expectedOptions);
+		});
+
+		describe('when `options.enforceHttps` is not defined', () => {
+
+			beforeEach(() => {
+				delete defaultedOptions.enforceHttps;
+			});
+
+			describe('and `options.env` is "production"', () => {
+
+				beforeEach(() => {
+					defaultedOptions.env = 'production';
+					returnValue = App.applyDefaultOptions(userOptions);
+				});
+
+				it('sets `options.enforceHttps` to `true`', () => {
+					assert.isTrue(returnValue.enforceHttps);
+				});
+
+			});
+
+			describe('and `options.env` is "development"', () => {
+
+				beforeEach(() => {
+					defaultedOptions.env = 'development';
+					returnValue = App.applyDefaultOptions(userOptions);
+				});
+
+				it('sets `options.enforceHttps` to `false`', () => {
+					assert.isFalse(returnValue.enforceHttps);
+				});
+
+			});
+
 		});
 
 		describe('when `options.requestLogFormat` is not defined', () => {

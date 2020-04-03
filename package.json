@@ -25,6 +25,7 @@
     "@rowanmanning/require-all": "^1.0.0",
     "connect-mongo": "^3.2.0",
     "express": "^4.17.1",
+    "express-http-to-https": "^1.1.4",
     "express-session": "^1.17.0",
     "helmet": "^3.21.3",
     "http-errors": "^1.7.3",

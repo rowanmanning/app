@@ -50,6 +50,7 @@ The available options are:
   - **`basePath`**: `String`. The path to look for application files in, prepended to all other paths. Defaults to `<CWD>`
   - **`controllerSubPath`**: `String`. The path to look for application controllers in. Will be prepended with `options.basePath`. Defaults to `controller`
   - **`databaseUrl`**: `String`. A MongoDB connection string to use for persistent storage. Defaults to `null`
+  - **`enforceHttps`**: `Boolean`. Whether to use redirect HTTP requests to HTTPS. Defaults to `true` when `options.env` is `production`, and `false` when `options.env` is `development`
   - **`env`**: `String`. The environment that the application is running in. Defaults to the `NODE_ENV` environment variable, or `development` if it's not set
   - **`logger`**: `Object`. An object with log methods. Defaults to `console`
   - **`logger.info`**: `Function`. A function used to log information. Defaults to `console.info`
