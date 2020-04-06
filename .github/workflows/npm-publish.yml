@@ -11,6 +11,9 @@ jobs:
       with:
         node-version: 12.x
         registry-url: https://registry.npmjs.org
-    - run: npm version --no-git-tag-version ${{ env.GITHUB_REF }} && npm publish --access public
+    - run: npm version --no-git-tag-version ${{ env.version }}
+      env:
+        version: ${{ env.GITHUB_REF }}
+    - run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
