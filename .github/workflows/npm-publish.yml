@@ -10,8 +10,8 @@ jobs:
     - uses: actions/setup-node@v1
       with:
         node-version: 12.x
-    - run: npm install
-    - run: make publish
+        registry-url: https://registry.npmjs.org
+    - run: npm version --no-git-tag-version ${{ github.ref }}
+    - run: npm publish --access public
       env:
-        NPM_PUBLISH_TAG: ${{ github.ref }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
