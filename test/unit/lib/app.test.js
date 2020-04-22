@@ -596,6 +596,10 @@ describe('lib/app', () => {
 				assert.strictEqual(sessionOptions.cookie.secure, 'mock-use-secure-cookies');
 			});
 
+			it('sets `instance.sessionMiddleware` to the created session middleware', () => {
+				assert.strictEqual(instance.sessionMiddleware, session.mockMiddleware);
+			});
+
 			it('logs that sessions have been set up', () => {
 				assert.calledWithExactly(instance.log.info, '[setup:sessions]: sessions set up successfully');
 			});
