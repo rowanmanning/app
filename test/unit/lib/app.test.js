@@ -8,10 +8,12 @@ const sinon = require('sinon');
 describe('lib/app', () => {
 	let App;
 	let connectMongo;
+	let EventEmitter;
 	let express;
 	let expressHttpToHttps;
 	let helmet;
 	let hijackExpressRender;
+	let http;
 	let mongoose;
 	let morgan;
 	let notFound;
@@ -29,6 +31,9 @@ describe('lib/app', () => {
 		connectMongo = require('../mock/npm/connect-mongo');
 		mockery.registerMock('connect-mongo', connectMongo);
 
+		EventEmitter = require('../mock/node/events');
+		mockery.registerMock('events', EventEmitter);
+
 		express = require('../mock/npm/express');
 		mockery.registerMock('express', express);
 
@@ -40,6 +45,9 @@ describe('lib/app', () => {
 
 		hijackExpressRender = require('../mock/npm/@rowanmanning/hijack-express-render');
 		mockery.registerMock('@rowanmanning/hijack-express-render', hijackExpressRender);
+
+		http = require('../mock/node/http');
+		mockery.registerMock('http', http);
 
 		mongoose = require('../mock/npm/mongoose');
 		mockery.registerMock('mongoose', mongoose);
@@ -107,11 +115,12 @@ describe('lib/app', () => {
 				viewSubPath: 'mock-view-path'
 			};
 			sinon.stub(App, 'applyDefaultOptions').returns(defaultedOptions);
-			sinon.stub(App.prototype, 'initDatabase');
-			sinon.stub(App.prototype, 'initRenderer');
-			sinon.stub(App.prototype, 'initExpress');
 			userOptions = {mockUserOptions: true};
 			instance = new App(userOptions);
+		});
+
+		it('extends EventEmitter', () => {
+			assert.isInstanceOf(instance, EventEmitter);
 		});
 
 		it('calls `App.applyDefaultOptions` with `options`', () => {
@@ -216,27 +225,86 @@ describe('lib/app', () => {
 
 		});
 
-		it('calls `instance.initDatabase`', () => {
-			assert.calledOnce(instance.initDatabase);
-			assert.calledWith(instance.initDatabase);
-		});
-
-		it('calls `instance.initRenderer`', () => {
-			assert.calledOnce(instance.initRenderer);
-			assert.calledWith(instance.initRenderer);
-		});
-
-		it('calls `instance.initExpress`', () => {
-			assert.calledOnce(instance.initExpress);
-			assert.calledWith(instance.initExpress);
-		});
-
-		describe('.initDatabase()', () => {
+		describe('.setup()', () => {
+			let returnValue;
 
 			beforeEach(() => {
-				instance.initDatabase.restore();
-				sinon.stub(App.prototype, 'initModels');
-				instance.initDatabase();
+				sinon.stub(App.prototype, 'setupDatabase');
+				sinon.stub(App.prototype, 'setupRenderer');
+				sinon.stub(App.prototype, 'setupExpress');
+				sinon.stub(App.prototype, 'startServer');
+				returnValue = instance.setup();
+			});
+
+			it('calls `instance.setupDatabase`', () => {
+				assert.calledOnce(instance.setupDatabase);
+				assert.calledWith(instance.setupDatabase);
+			});
+
+			it('calls `instance.setupRenderer`', () => {
+				assert.calledOnce(instance.setupRenderer);
+				assert.calledWith(instance.setupRenderer);
+			});
+
+			it('calls `instance.setupExpress`', () => {
+				assert.calledOnce(instance.setupExpress);
+				assert.calledWith(instance.setupExpress);
+			});
+
+			it('calls `instance.startServer`', () => {
+				assert.calledOnce(instance.startServer);
+				assert.calledWith(instance.startServer);
+			});
+
+			it('calls the init methods in the expected order', () => {
+				assert.callOrder(
+					instance.setupDatabase,
+					instance.setupRenderer,
+					instance.setupExpress,
+					instance.startServer
+				);
+			});
+
+			it('returns the instance', () => {
+				assert.strictEqual(returnValue, instance);
+			});
+
+			describe('when one of the called methods throws an error', () => {
+				let caughtError;
+				let mockError;
+
+				beforeEach(() => {
+					mockError = new Error('mock error');
+					App.prototype.startServer.throws(mockError);
+					try {
+						returnValue = instance.setup();
+					} catch (error) {
+						caughtError = error;
+					}
+				});
+
+				it('does not throw the error', () => {
+					assert.isUndefined(caughtError);
+				});
+
+				it('emits a `setup:error` event, passing the error to that', () => {
+					assert.calledOnce(instance.emit);
+					assert.calledWithExactly(instance.emit, 'setup:error', mockError);
+				});
+
+				it('returns the instance', () => {
+					assert.strictEqual(returnValue, instance);
+				});
+
+			});
+
+		});
+
+		describe('.setupDatabase()', () => {
+
+			beforeEach(() => {
+				sinon.stub(App.prototype, 'setupModels');
+				instance.setupDatabase();
 			});
 
 			it('creates a Mongoose connection using `options.databaseUrl`', () => {
@@ -252,9 +320,40 @@ describe('lib/app', () => {
 				assert.strictEqual(instance.db, mongoose.createConnection.firstCall.returnValue);
 			});
 
-			it('calls `instance.initModels`', () => {
-				assert.calledOnce(instance.initModels);
-				assert.calledWith(instance.initModels);
+			it('listens for the connection `connected` event', () => {
+				assert.calledOnce(instance.db.on);
+				assert.isFunction(instance.db.on.firstCall.args[1]);
+			});
+
+			describe('instance.db `connected` handler', () => {
+
+				beforeEach(() => {
+					instance.emit.resetHistory();
+					instance.db.on.firstCall.args[1]();
+				});
+
+				it('logs that the database has connected', () => {
+					assert.calledWithExactly(instance.log.debug, '[setup:database]: connected');
+				});
+
+				it('emits a `database:connected` event', () => {
+					assert.calledOnce(instance.emit);
+					assert.calledWithExactly(instance.emit, 'database:connected');
+				});
+
+			});
+
+			it('calls `instance.setupModels`', () => {
+				assert.calledOnce(instance.setupModels);
+				assert.calledWith(instance.setupModels);
+			});
+
+			it('calls everything in the expected order', () => {
+				assert.callOrder(
+					mongoose.createConnection,
+					instance.db.on,
+					instance.setupModels
+				);
 			});
 
 			describe('when `options.databaseUrl` is not set', () => {
@@ -262,23 +361,27 @@ describe('lib/app', () => {
 				beforeEach(() => {
 					instance.options.databaseUrl = undefined;
 					mongoose.createConnection.resetHistory();
-					instance.initModels.resetHistory();
-					instance.initDatabase();
+					instance.setupModels.resetHistory();
+					instance.setupDatabase();
 				});
 
 				it('does not create a Mognoose connection', () => {
 					assert.notCalled(mongoose.createConnection);
 				});
 
-				it('does not call `instance.initModels`', () => {
-					assert.notCalled(instance.initModels);
+				it('does not call `instance.setupModels`', () => {
+					assert.notCalled(instance.setupModels);
+				});
+
+				it('logs an error to explain that the database has not been set up', () => {
+					assert.calledWithExactly(instance.log.error, '[setup:database]: missing "databaseUrl" option, database not set up');
 				});
 
 			});
 
 		});
 
-		describe('.initModels()', () => {
+		describe('.setupModels()', () => {
 
 			beforeEach(() => {
 				instance.models = {};
@@ -296,7 +399,7 @@ describe('lib/app', () => {
 				]);
 				mongoose.mockConnection.model.withArgs('FirstMockName').returns('FirstMockModel');
 				mongoose.mockConnection.model.withArgs('SecondMockName').returns('SecondMockModel');
-				instance.initModels();
+				instance.setupModels();
 			});
 
 			it('requires all of the models and initialises them', () => {
@@ -314,6 +417,11 @@ describe('lib/app', () => {
 				assert.calledWithExactly(mongoose.mockConnection.model, 'SecondMockName', 'SecondMockSchema');
 			});
 
+			it('logs that each model has been initialised', () => {
+				assert.calledWithExactly(instance.log.debug, '[setup:models]: "FirstMockName" model initialised');
+				assert.calledWithExactly(instance.log.debug, '[setup:models]: "SecondMockName" model initialised');
+			});
+
 			it('stores created models on the `models` property', () => {
 				assert.strictEqual(instance.models.FirstMockName, 'FirstMockModel');
 				assert.strictEqual(instance.models.SecondMockName, 'SecondMockModel');
@@ -327,7 +435,7 @@ describe('lib/app', () => {
 					mockError = new Error('mock error');
 					requireAll.throws(mockError);
 					try {
-						instance.initModels();
+						instance.setupModels();
 					} catch (error) {
 						caughtError = error;
 					}
@@ -342,7 +450,7 @@ describe('lib/app', () => {
 
 		});
 
-		describe('.initRenderer()', () => {
+		describe('.setupRenderer()', () => {
 			let defaultedNamespaceConfig;
 
 			beforeEach(() => {
@@ -351,8 +459,7 @@ describe('lib/app', () => {
 					mockDefaultedConfig: true
 				};
 				sinon.stub(Object, 'assign').returns(defaultedNamespaceConfig);
-				instance.initRenderer.restore();
-				instance.initRenderer();
+				instance.setupRenderer();
 			});
 
 			it('defaults the `namespacePaths` option, adding internal paths', () => {
@@ -376,16 +483,15 @@ describe('lib/app', () => {
 
 		});
 
-		describe('.initExpress()', () => {
+		describe('.setupExpress()', () => {
 
 			beforeEach(() => {
 				instance.db = mongoose.mockConnection;
 				instance.renderer = Renderer.mockInstance;
-				instance.initControllers = sinon.stub();
+				instance.setupControllers = sinon.stub();
 				express.static.onCall(0).returns('mock-static-middleware-1');
 				express.static.onCall(1).returns('mock-static-middleware-2');
-				instance.initExpress.restore();
-				instance.initExpress();
+				instance.setupExpress();
 			});
 
 			it('creates an Express application', () => {
@@ -399,6 +505,20 @@ describe('lib/app', () => {
 
 			it('sets `instance.router` to the created Express application', () => {
 				assert.strictEqual(instance.router, express.firstCall.returnValue);
+			});
+
+			it('creates an HTTP server with the created Express application', () => {
+				assert.calledOnce(http.createServer);
+				assert.calledWithExactly(http.createServer, instance.express);
+			});
+
+			it('sets `instance.server` to the created HTTP server', () => {
+				assert.strictEqual(instance.server, http.createServer.firstCall.returnValue);
+			});
+
+			it('emits a `server:created` event, passing the server to that', () => {
+				assert.calledOnce(instance.emit);
+				assert.calledWithExactly(instance.emit, 'server:created', instance.server);
 			});
 
 			it('enables case-sensitive routing', () => {
@@ -474,6 +594,10 @@ describe('lib/app', () => {
 				assert.isObject(sessionOptions.cookie);
 				assert.strictEqual(sessionOptions.cookie.sameSite, 'lax');
 				assert.strictEqual(sessionOptions.cookie.secure, 'mock-use-secure-cookies');
+			});
+
+			it('logs that sessions have been set up', () => {
+				assert.calledWithExactly(instance.log.info, '[setup:sessions]: sessions set up successfully');
 			});
 
 			it('sets the `app` application local to the application instance', () => {
@@ -564,8 +688,8 @@ describe('lib/app', () => {
 			});
 
 			it('initialises controllers', () => {
-				assert.calledOnce(instance.initControllers);
-				assert.calledWithExactly(instance.initControllers);
+				assert.calledOnce(instance.setupControllers);
+				assert.calledWithExactly(instance.setupControllers);
 			});
 
 			it('creates and mounts static middleware', () => {
@@ -632,13 +756,31 @@ describe('lib/app', () => {
 
 			});
 
+			it('calls everything in the expected order', () => {
+				assert.callOrder(
+					express,
+					http.createServer,
+					hijackExpressRender,
+					instance.express.use.withArgs(helmet.mockMiddleware),
+					instance.express.use.withArgs(expressHttpToHttps.mockMiddleware),
+					instance.express.use.withArgs(express.urlencoded.mockMiddleware),
+					instance.express.use.withArgs(express.json.mockMiddleware),
+					instance.express.use.withArgs(session.mockMiddleware),
+					instance.express.use.withArgs(morgan.mockMiddleware),
+					instance.express.use.withArgs('mock-static-middleware-1'),
+					instance.express.use.withArgs('/@app', 'mock-static-middleware-2'),
+					instance.express.use.withArgs(notFound.mockMiddleware),
+					instance.express.use.withArgs(renderErrorPage.mockMiddleware)
+				);
+			});
+
 			describe('when `options.env` is "production"', () => {
 
 				beforeEach(() => {
 					instance.env = 'production';
 					express.static.resetHistory();
 					renderErrorPage.resetHistory();
-					instance.initExpress();
+					instance.setupExpress();
 				});
 
 				it('sets the trust proxy option', () => {
@@ -665,7 +807,7 @@ describe('lib/app', () => {
 					connectMongo.MongoStore.resetHistory();
 					session.Store.resetHistory();
 					session.resetHistory();
-					instance.initExpress();
+					instance.setupExpress();
 				});
 
 				it('does not create a Mongo session store', () => {
@@ -691,7 +833,7 @@ describe('lib/app', () => {
 					instance.options.enforceHttps = false;
 					expressHttpToHttps.redirectToHTTPS.resetHistory();
 					express.mockApp.use.resetHistory();
-					instance.initExpress();
+					instance.setupExpress();
 				});
 
 				it('does not create and mount redirectToHTTPS middleware', () => {
@@ -709,7 +851,7 @@ describe('lib/app', () => {
 					session.Store.resetHistory();
 					express.mockApp.use.resetHistory();
 					session.resetHistory();
-					instance.initExpress();
+					instance.setupExpress();
 				});
 
 				it('does not create a Mongo session store', () => {
@@ -726,7 +868,7 @@ describe('lib/app', () => {
 				});
 
 				it('logs an error to explain that sessions are not configured', () => {
-					assert.calledWith(instance.log.error, '[setup]: missing "sessionSecret" option, sessions are not set up');
+					assert.calledWith(instance.log.error, '[setup:sessions]: missing "sessionSecret" option, sessions not set up');
 				});
 
 			});
@@ -737,7 +879,7 @@ describe('lib/app', () => {
 					delete instance.options.requestLogFormat;
 					morgan.resetHistory();
 					express.mockApp.use.resetHistory();
-					instance.initExpress();
+					instance.setupExpress();
 				});
 
 				it('does not create or mount morgan middleware', () => {
@@ -749,7 +891,7 @@ describe('lib/app', () => {
 
 		});
 
-		describe('.initControllers()', () => {
+		describe('.setupControllers()', () => {
 
 			beforeEach(() => {
 				instance.controllers = {};
@@ -765,7 +907,7 @@ describe('lib/app', () => {
 						moduleExports: sinon.stub().returns('SecondMockController')
 					}
 				]);
-				instance.initControllers();
+				instance.setupControllers();
 			});
 
 			it('requires all of the controllers, camel-casing the names and initialising them', () => {
@@ -777,12 +919,17 @@ describe('lib/app', () => {
 				assert.calledWithExactly(requireAll.firstCall.returnValue[1].moduleExports, instance);
 			});
 
+			it('logs that each controller has been initialised', () => {
+				assert.calledWithExactly(instance.log.debug, '[setup:controllers]: "FirstMockName" controller initialised');
+				assert.calledWithExactly(instance.log.debug, '[setup:controllers]: "SecondMockName" controller initialised');
+			});
+
 			it('stores initialised controllers on the `controllers` property, camel-casing the names', () => {
 				assert.deepEqual(instance.controllers.FirstMockName, 'FirstMockController');
 				assert.deepEqual(instance.controllers.SecondMockName, 'SecondMockController');
 			});
 
-			describe('when an error occurs during model initialisation', () => {
+			describe('when an error occurs during controller initialisation', () => {
 				let mockError;
 				let caughtError;
 
@@ -790,7 +937,7 @@ describe('lib/app', () => {
 					mockError = new Error('mock error');
 					requireAll.throws(mockError);
 					try {
-						instance.initControllers();
+						instance.setupControllers();
 					} catch (error) {
 						caughtError = error;
 					}
@@ -805,174 +952,146 @@ describe('lib/app', () => {
 
 		});
 
-		describe('.start()', () => {
-			let returnValue;
+		describe('.startServer()', () => {
 
-			beforeEach(async () => {
-				delete instance.server;
-				instance.express = express.mockApp;
+			beforeEach(() => {
+				instance.server = http.mockServer;
+				instance.server.listen.yields();
 				os.hostname.returns('mock-os-hostname');
-				express.mockAddress.port = 'mock-express-address-port';
-				returnValue = await instance.start();
+				http.mockAddress.port = 'mock-server-address-port';
+				instance.startServer();
 			});
 
-			it('returns the application instance', () => {
-				assert.strictEqual(returnValue, instance);
+			it('starts the HTTP server listening on the given `port` option', () => {
+				assert.calledOnce(instance.server.listen);
+				assert.calledWith(instance.server.listen, 'mock-port');
+				assert.isFunction(instance.server.listen.firstCall.args[1]);
 			});
 
-			it('starts the Express application listening on the given `port` option', () => {
-				assert.calledOnce(express.mockApp.listen);
-				assert.calledWith(express.mockApp.listen, 'mock-port');
+			it('logs that the server has started', () => {
+				assert.calledWith(instance.log.info, '[setup:server]: started successfully http://mock-os-hostname:mock-server-address-port');
 			});
 
-			it('stores the created HTTP server on the `server` property', () => {
-				assert.strictEqual(instance.server, express.mockServer);
-			});
-
-			it('logs that the application has started', () => {
-				assert.calledWith(instance.log.info, '[lifecycle]: started successfully http://mock-os-hostname:mock-express-address-port');
-			});
-
-			describe('when `instance.server` is already set', () => {
-				let caughtError;
-
-				beforeEach(async () => {
-					instance.log.info.resetHistory();
-					express.mockApp.listen.resetHistory();
-					instance.server = express.mockServer;
-					try {
-						await instance.start();
-					} catch (error) {
-						caughtError = error;
-					}
-				});
-
-				it('does not attempt to start the Express application', () => {
-					assert.notCalled(express.mockApp.listen);
-				});
-
-				it('does log that the application has started', () => {
-					assert.notCalled(instance.log.info);
-				});
-
-				it('throws an error', () => {
-					assert.isInstanceOf(caughtError, Error);
-					assert.strictEqual(caughtError.message, 'Application has already been started');
-				});
-
+			it('emits a `server:started` event, passing the server to that', () => {
+				assert.calledOnce(instance.emit);
+				assert.calledWithExactly(instance.emit, 'server:started', instance.server);
 			});
 
 			describe('when listening on the port fails', () => {
 				let caughtError;
 				let mockError;
 
-				beforeEach(async () => {
+				beforeEach(() => {
+					instance.emit.resetHistory();
 					mockError = new Error('mock error');
-					express.mockApp.listen.yieldsAsync(mockError);
+					instance.server.listen.yields(mockError);
 					instance.log.info.resetHistory();
-					delete instance.server;
 					try {
-						await instance.start();
+						instance.startServer();
 					} catch (error) {
 						caughtError = error;
 					}
 				});
 
 				it('logs that the application has failed to start', () => {
-					assert.calledWith(instance.log.error, '[lifecycle]: failed to start');
+					assert.calledWith(instance.log.error, '[setup:server]: failed to start');
 				});
 
 				it('does not log that the application has started', () => {
 					assert.notCalled(instance.log.info);
 				});
 
-				it('throws the error', () => {
-					assert.strictEqual(caughtError, mockError);
+				it('does not emit a `server:started` event', () => {
+					assert.neverCalledWith(instance.emit, 'server:started', instance.server);
+				});
+
+				it('does not throw the error', () => {
+					assert.isUndefined(caughtError);
+				});
+
+				it('emits a `setup:error` event, passing the error to that', () => {
+					assert.calledOnce(instance.emit);
+					assert.calledWithExactly(instance.emit, 'setup:error', mockError);
 				});
 
 			});
 
 		});
 
-		describe('.stop()', () => {
-			let returnValue;
+		describe('.teardown()', () => {
 
-			beforeEach(async () => {
-				instance.server = express.mockServer;
-				returnValue = await instance.stop();
+			beforeEach(() => {
+				instance.server = http.mockServer;
+				instance.db = mongoose.mockConnection;
+				instance.teardown();
 			});
 
-			it('returns the application instance', () => {
-				assert.strictEqual(returnValue, instance);
+			it('closes the server connection', () => {
+				assert.calledOnce(instance.server.close);
+				assert.isFunction(instance.server.close.firstCall.args[0]);
 			});
 
-			it('stops the server', () => {
-				assert.calledOnce(express.mockServer.close);
+			it('closes the database connection', () => {
+				assert.calledOnce(instance.db.close);
+				assert.isFunction(instance.db.close.firstCall.args[0]);
 			});
 
-			it('deletes the `server` property', () => {
-				assert.isUndefined(instance.server);
+			describe('server close callback', () => {
+
+				beforeEach(() => {
+					instance.server.close.firstCall.args[0]();
+				});
+
+				it('deletes the `server` property', () => {
+					assert.isUndefined(instance.server);
+				});
+
+				it('logs that the server has stopped', () => {
+					assert.calledWith(instance.log.info, '[teardown:server]: stopped successfully');
+				});
+
 			});
 
-			it('logs that the application has stopped', () => {
-				assert.calledWith(instance.log.info, '[lifecycle]: stopped successfully');
+			describe('database close callback', () => {
+
+				beforeEach(() => {
+					instance.db.close.firstCall.args[0]();
+				});
+
+				it('deletes the `db` property', () => {
+					assert.isUndefined(instance.db);
+				});
+
+				it('logs that the database connection has been closed', () => {
+					assert.calledWith(instance.log.info, '[teardown:database]: closed connection successfully');
+				});
+
 			});
 
 			describe('when `instance.server` is not set', () => {
-				let caughtError;
 
-				beforeEach(async () => {
-					instance.log.info.resetHistory();
-					express.mockServer.close.resetHistory();
+				beforeEach(() => {
+					http.mockServer.close.resetHistory();
 					delete instance.server;
-					try {
-						await instance.stop();
-					} catch (error) {
-						caughtError = error;
-					}
+					instance.teardown();
 				});
 
 				it('does not attempt to stop the server', () => {
-					assert.notCalled(express.mockServer.close);
-				});
-
-				it('does log that the application has stopped', () => {
-					assert.notCalled(instance.log.info);
-				});
-
-				it('throws an error', () => {
-					assert.isInstanceOf(caughtError, Error);
-					assert.strictEqual(caughtError.message, 'Application has not been started');
+					assert.notCalled(http.mockServer.close);
 				});
 
 			});
 
-			describe('when stopping the server fails', () => {
-				let caughtError;
-				let mockError;
+			describe('when `instance.db` is not set', () => {
 
-				beforeEach(async () => {
-					mockError = new Error('mock error');
-					express.mockServer.close.yieldsAsync(mockError);
-					instance.server = express.mockServer;
-					instance.log.info.resetHistory();
-					try {
-						await instance.stop();
-					} catch (error) {
-						caughtError = error;
-					}
+				beforeEach(() => {
+					mongoose.mockConnection.close.resetHistory();
+					delete instance.db;
+					instance.teardown();
 				});
 
-				it('logs that the application has failed to stop', () => {
-					assert.calledWith(instance.log.error, '[lifecycle]: failed to stop');
-				});
-
-				it('does not log that the application has started', () => {
-					assert.notCalled(instance.log.info);
-				});
-
-				it('throws the error', () => {
-					assert.strictEqual(caughtError, mockError);
+				it('does not attempt to close the database connection', () => {
+					assert.notCalled(mongoose.mockConnection.close);
 				});
 
 			});

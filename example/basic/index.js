@@ -8,8 +8,12 @@ const app = new App({
 	name: '@rowanmanning/app: Basic Example'
 });
 
-// Start the application
-app.start().catch(error => {
-	app.log.error(error.stack);
+// Catch setup errors
+app.once('setup:error', error => {
 	process.exitCode = 1;
+	app.log.error(error.stack);
+	app.teardown();
 });
+
+// Set up the application
+app.setup();

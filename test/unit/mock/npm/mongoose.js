@@ -11,7 +11,9 @@ const mongoose = {
 	SchemaType: 'mock-schema-type'
 };
 mongoose.mockConnection = {
-	model: sinon.stub()
+	close: sinon.stub(),
+	model: sinon.stub(),
+	on: sinon.stub()
 };
 mongoose.createConnection.returns(mongoose.mockConnection);
 

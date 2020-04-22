@@ -20,7 +20,6 @@ module.exports = function initIndexController(app) {
 	// Route for TODO marking as complete
 	router.post('/todo/complete', async (request, response, next) => {
 		try {
-			console.log(request.body);
 			const todo = await Todo.findById(request.body.todo);
 			if (!todo) {
 				return next('route');
@@ -36,7 +35,6 @@ module.exports = function initIndexController(app) {
 	// Route for TODO marking as complete
 	router.post('/todo/uncomplete', async (request, response, next) => {
 		try {
-			console.log(request.body);
 			const todo = await Todo.findById(request.body.todo);
 			if (!todo) {
 				return next('route');

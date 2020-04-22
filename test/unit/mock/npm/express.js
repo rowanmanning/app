@@ -5,7 +5,6 @@ const sinon = require('sinon');
 const express = sinon.stub();
 express.mockApp = {
 	enable: sinon.stub(),
-	listen: sinon.stub(),
 	locals: {},
 	set: sinon.stub(),
 	use: sinon.stub()
@@ -15,12 +14,6 @@ express.returns(express.mockApp);
 express.mockAddress = {
 	port: 'mock-address-port'
 };
-
-express.mockServer = {
-	address: sinon.stub().returns(express.mockAddress),
-	close: sinon.stub().yieldsAsync(null)
-};
-express.mockApp.listen.returns(express.mockServer).yieldsAsync(null);
 
 express.json = sinon.stub();
 express.json.mockMiddleware = sinon.stub();

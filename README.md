@@ -41,11 +41,33 @@ const App = require('@rowanmanning/app');
 
 ### Creating an app
 
+To create an app, create an instance of the `App` class. `options` is an object, [available options are documented here](#app-options).
+
 ```js
 const app = new App(options);
 ```
 
-The available options are:
+You may also want to [extend the `App` class](#extending) in order to add additional features or default some of the options to something that makes sense for you.
+
+### Starting the app
+
+To start the application, you'll need to use the `setup` method. This does not return anything, if you want to know when the application has started you can use [events](#app-events).
+
+```js
+app.setup();
+```
+
+### Stopping the app
+
+You can stop the application safely with:
+
+```js
+app.teardown();
+```
+
+### App options
+
+When you initialise a new application, the following options are available:
 
   - **`basePath`**: `String`. The path to look for application files in, prepended to all other paths. Defaults to `<CWD>`
   - **`controllerSubPath`**: `String`. The path to look for application controllers in. Will be prepended with `options.basePath`. Defaults to `controller`
@@ -69,15 +91,63 @@ The available options are:
   - **`viewSubPath`**: `String`. The path to look for application views in. Will be prepended with `options.basePath`. Defaults to `view`
   - **`viewNamespacePaths`**: `Object`. Key/value pairs of view namespaces, see the [Renderer documentation](https://github.com/rowanmanning/renderer#namespaces). Defaults to `{}`
 
-You can start the application with the `start` method:
+### App events
+
+The `App` class extends [`EventEmitter`](https://nodejs.org/api/events.html), and you can listen on the following events:
+
+  - **`database:connected`**: emitted when the MongoDB database connection has been set up.
+  - **`server:created`**: emitted when the node HTTP server has been set up. Called with the created HTTP server
+  - **`server:started`**: emitted when the HTTP server has started listening on a port. Called with the HTTP server
+  - **`setup:error`**: emitted when the `setup` method fails to set up the application. In this scenario it is no longer possible to start the application so it should be [torn down](#stopping-the-app)
+
+### Extending
+
+It's possible to extend the `App` class to add additional features or provide default options:
 
 ```js
-app.start();
+class MyApp extends App {
+    constructor(options = {}) {
+        options.name = 'My App';
+        super(options);
+    }
+}
 ```
+
+The following methods can also be overridden to add or change behaviour. They are called in this order during startup:
+
+  - **`setupDatabase`**: Initialise the MongoDB database. See also the `database:connected` event
+  - **`setupModels`**: Load models from the file system and add them to `app.models`
+  - **`setupExpress`**: Initialise express and an HTTP server
+  - **`setupControllers`**: Load controllers from the file system
+  - **`startServer`**: Start the HTTP server
+
 
 ### Examples
 
-We provide a few example implementations which demonstrate different features:
+A ready-to-use main application file looks something like this:
+
+```js
+const App = require('@rowanmanning/app');
+
+const app = new App({
+    basePath: __dirname,
+    databaseUrl: process.env.DATABASE_URL,
+    name: 'My Application',
+    sessionSecret: process.env.SESSION_SECRET
+});
+
+// Catch setup errors
+app.once('setup:error', error => {
+    process.exitCode = 1;
+    app.log.error(error.stack);
+    app.teardown();
+});
+
+// Set up the application
+app.setup();
+```
+
+There are also a few example implementations in the repo which demonstrate some features:
 
   - **[Basic](example/basic)**: the simplest use of the library to render pages. Run `npm run example-basic` to start the application and visit [localhost:8080](http://localhost:8080/).
 
