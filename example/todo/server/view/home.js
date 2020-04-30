@@ -1,6 +1,6 @@
 'use strict';
 
-const {html, Partial} = require('../../..');
+const {html, Partial} = require('../../../..');
 const layout = require('./layout/default');
 
 module.exports = function homeView(context) {

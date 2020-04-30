@@ -49,6 +49,18 @@ const app = new App(options);
 
 You may also want to [extend the `App` class](#extending) in order to add additional features or default some of the options to something that makes sense for you.
 
+You'll also need to create the directory structure that your application needs. These folders are configurable, but the default directory structure is:
+
+```
+app
+├── client
+│   └── public
+└── server
+    ├── controller
+    ├── model
+    └── view
+```
+
 ### Starting the app
 
 To start the application, you'll need to use the `setup` method. This does not return anything, if you want to know when the application has started you can use [events](#app-events).
@@ -70,7 +82,7 @@ app.teardown();
 When you initialise a new application, the following options are available:
 
   - **`basePath`**: `String`. The path to look for application files in, prepended to all other paths. Defaults to `<CWD>`
-  - **`controllerSubPath`**: `String`. The path to look for application controllers in. Will be prepended with `options.basePath`. Defaults to `controller`
+  - **`controllerSubPath`**: `String`. The path to look for application controllers in. Will be prepended with `options.basePath`. Defaults to `server/controller`
   - **`databaseUrl`**: `String`. A MongoDB connection string to use for persistent storage. Defaults to `null`
   - **`enforceHttps`**: `Boolean`. Whether to use redirect HTTP requests to HTTPS. Defaults to `true` when `options.env` is `production`, and `false` when `options.env` is `development`
   - **`env`**: `String`. The environment that the application is running in. Defaults to the `NODE_ENV` environment variable, or `development` if it's not set
@@ -78,17 +90,17 @@ When you initialise a new application, the following options are available:
   - **`logger.info`**: `Function`. A function used to log information. Defaults to `console.info`
   - **`logger.error`**: `Function`. A function used to log errors. Defaults to `console.error`
   - **`logger.debug`**: `Function`. A function used to log debug messages. Defaults to `console.debug`
-  - **`modelSubPath`**: `String`. The path to look for application models in. Will be prepended with `options.basePath`. Defaults to `model`
+  - **`modelSubPath`**: `String`. The path to look for application models in. Will be prepended with `options.basePath`. Defaults to `server/model`
   - **`name`**: `String`. The name of the application. Used in logs. Defaults to `App`
   - **`port`**: `Number`. The port that the application should run on. Defaults to the `PORT` environment variable or `8080` if it's not set.
   - **`publicCacheMaxAge`**: `Number`. The cache max-age for public resources in production. Defaults to `604800000` (one week)
-  - **`publicSubPath`**: `String`. The path to look for application public files in. Will be prepended with `options.basePath`. Defaults to `public`
+  - **`publicSubPath`**: `String`. The path to look for application public files in. Will be prepended with `options.basePath`. Defaults to `client/public`
   - **`requestLogFormat`**: `String`. The request log format, see the [Morgan documentation](https://github.com/expressjs/morgan) for more information. Defaults to `combined` when `options.env` is `production`, and `dev` when `options.env` is `development`
   - **`requestLogOutputStream`**: `Stream`. The stream to pipe request logs into. Defaults to `process.stdout`
   - **`sessionSecret`**: `String`. A secret used to sign session cookies with. If not set, sessions are disabled. Defaults to `null`
   - **`trustProxy`**: Express [trust proxy](http://expressjs.com/en/api.html#trust.proxy.options.table) settings. This is only used if `options.env` is "production". Defaults to `true`
   - **`useSecureCookies`**: `Boolean`. Whether to use secure cookies. Defaults to `true` when `options.env` is `production`, and `false` when `options.env` is `development`
-  - **`viewSubPath`**: `String`. The path to look for application views in. Will be prepended with `options.basePath`. Defaults to `view`
+  - **`viewSubPath`**: `String`. The path to look for application views in. Will be prepended with `options.basePath`. Defaults to `server/view`
   - **`viewNamespacePaths`**: `Object`. Key/value pairs of view namespaces, see the [Renderer documentation](https://github.com/rowanmanning/renderer#namespaces). Defaults to `{}`
 
 ### App events

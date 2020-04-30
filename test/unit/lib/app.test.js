@@ -1122,7 +1122,7 @@ describe('lib/app', () => {
 		describe('.controllerSubPath', () => {
 
 			it('is set to "controller"', () => {
-				assert.strictEqual(App.defaultOptions.controllerSubPath, 'controller');
+				assert.strictEqual(App.defaultOptions.controllerSubPath, 'server/controller');
 			});
 
 		});
@@ -1176,7 +1176,7 @@ describe('lib/app', () => {
 		describe('.modelSubPath', () => {
 
 			it('is set to "model"', () => {
-				assert.strictEqual(App.defaultOptions.modelSubPath, 'model');
+				assert.strictEqual(App.defaultOptions.modelSubPath, 'server/model');
 			});
 
 		});
@@ -1222,7 +1222,7 @@ describe('lib/app', () => {
 		describe('.publicSubPath', () => {
 
 			it('is set to "public"', () => {
-				assert.strictEqual(App.defaultOptions.publicSubPath, 'public');
+				assert.strictEqual(App.defaultOptions.publicSubPath, 'client/public');
 			});
 
 		});
@@ -1278,7 +1278,7 @@ describe('lib/app', () => {
 		describe('.viewSubPath', () => {
 
 			it('is set to "view"', () => {
-				assert.strictEqual(App.defaultOptions.viewSubPath, 'view');
+				assert.strictEqual(App.defaultOptions.viewSubPath, 'server/view');
 			});
 
 		});

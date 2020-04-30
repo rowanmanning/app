@@ -1,6 +1,6 @@
 'use strict';
 
-const {html} = require('../../..');
+const {html} = require('../../../..');
 const layout = require('./layout/default');
 
 module.exports = function homeView(context) {

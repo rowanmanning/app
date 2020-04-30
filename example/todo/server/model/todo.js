@@ -1,6 +1,6 @@
 'use strict';
 
-const {Schema} = require('../../..');
+const {Schema} = require('../../../..');
 
 module.exports = function initTodoModel() {
 

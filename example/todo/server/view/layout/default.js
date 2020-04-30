@@ -1,6 +1,6 @@
 'use strict';
 
-const {html} = require('../../../..');
+const {html} = require('../../../../..');
 
 module.exports = function defaultLayout(context, content) {
 	return html`
