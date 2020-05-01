@@ -54,7 +54,8 @@ You'll also need to create the directory structure that your application needs. 
 ```
 app
 ├── client
-│   └── public
+|   ├── public
+|   └── sass
 └── server
     ├── controller
     ├── model
@@ -97,6 +98,8 @@ When you initialise a new application, the following options are available:
   - **`publicSubPath`**: `String`. The path to look for application public files in. Will be prepended with `options.basePath`. Defaults to `client/public`
   - **`requestLogFormat`**: `String`. The request log format, see the [Morgan documentation](https://github.com/expressjs/morgan) for more information. Defaults to `combined` when `options.env` is `production`, and `dev` when `options.env` is `development`
   - **`requestLogOutputStream`**: `Stream`. The stream to pipe request logs into. Defaults to `process.stdout`
+  - **`sassBundles`**: `Object`. A map of CSS URLs and Sass source paths, where each key is the URL path that the CSS bundle is served on, and each value is the location of the entry point Sass source file for that bundle, see [Resave Sass](https://github.com/rowanmanning/resave-sass) for more information. The source paths are relative to `options.basePath` and `options.sassSubPath`. Defaults to `{'/main.css': 'main.scss'}`
+  - **`sassSubPath`**: The path to look for Sass files in. Will be prepended with `options.basePath`. Defaults to `client/sass`
   - **`sessionSecret`**: `String`. A secret used to sign session cookies with. If not set, sessions are disabled. Defaults to `null`
   - **`trustProxy`**: Express [trust proxy](http://expressjs.com/en/api.html#trust.proxy.options.table) settings. This is only used if `options.env` is "production". Defaults to `true`
   - **`useSecureCookies`**: `Boolean`. Whether to use secure cookies. Defaults to `true` when `options.env` is `production`, and `false` when `options.env` is `development`
@@ -127,10 +130,11 @@ class MyApp extends App {
 
 The following methods can also be overridden to add or change behaviour. They are called in this order during startup:
 
-  - **`setupDatabase`**: Initialise the MongoDB database. See also the `database:connected` event
-  - **`setupModels`**: Load models from the file system and add them to `app.models`
-  - **`setupExpress`**: Initialise express and an HTTP server
+  - **`setupClientAssetCompilation`**: Set up client-side asset compilation middleware
   - **`setupControllers`**: Load controllers from the file system
+  - **`setupDatabase`**: Initialise the MongoDB database. See also the `database:connected` event
+  - **`setupExpress`**: Initialise express and an HTTP server
+  - **`setupModels`**: Load models from the file system and add them to `app.models`
   - **`startServer`**: Start the HTTP server
 
 

@@ -21,6 +21,7 @@ describe('lib/app', () => {
 	let Renderer;
 	let renderErrorPage;
 	let requireAll;
+	let resaveSass;
 	let session;
 	let varname;
 
@@ -70,6 +71,9 @@ describe('lib/app', () => {
 		requireAll = require('../mock/npm/@rowanmanning/require-all');
 		mockery.registerMock('@rowanmanning/require-all', requireAll);
 
+		resaveSass = require('../mock/npm/resave-sass');
+		mockery.registerMock('resave-sass', resaveSass);
+
 		session = require('../mock/npm/express-session');
 		mockery.registerMock('express-session', session);
 
@@ -108,6 +112,8 @@ describe('lib/app', () => {
 				publicSubPath: 'mock-public-path',
 				requestLogFormat: 'mock-request-log-format',
 				requestLogOutputStream: 'mock-request-log-output-stream',
+				sassSubPath: 'mock-sass-path',
+				sassBundles: 'mock-sass-bundles',
 				sessionSecret: 'mock-session-secret',
 				trustProxy: 'mock-trust-proxy',
 				useSecureCookies: 'mock-use-secure-cookies',
@@ -195,6 +201,14 @@ describe('lib/app', () => {
 
 				it('is set to the resolved `basePath` and `publicSubPath`', () => {
 					assert.strictEqual(instance.paths.public, '/mock-base-path/mock-public-path');
+				});
+
+			});
+
+			describe('.sass', () => {
+
+				it('is set to the resolved `basePath` and `sassSubPath`', () => {
+					assert.strictEqual(instance.paths.sass, '/mock-base-path/mock-sass-path');
 				});
 
 			});
@@ -489,6 +503,7 @@ describe('lib/app', () => {
 				instance.db = mongoose.mockConnection;
 				instance.renderer = Renderer.mockInstance;
 				instance.setupControllers = sinon.stub();
+				instance.setupClientAssetCompilation = sinon.stub();
 				express.static.onCall(0).returns('mock-static-middleware-1');
 				express.static.onCall(1).returns('mock-static-middleware-2');
 				instance.setupExpress();
@@ -706,6 +721,11 @@ describe('lib/app', () => {
 				});
 				assert.calledWith(express.mockApp.use, 'mock-static-middleware-1');
 				assert.calledWith(express.mockApp.use, '/@app', 'mock-static-middleware-2');
+			});
+
+			it('initialises client-side asset compilation', () => {
+				assert.calledOnce(instance.setupClientAssetCompilation);
+				assert.calledWithExactly(instance.setupClientAssetCompilation);
 			});
 
 			it('creates and mounts notFound middleware', () => {
@@ -956,6 +976,54 @@ describe('lib/app', () => {
 
 		});
 
+		describe('.setupClientAssetCompilation()', () => {
+
+			beforeEach(() => {
+				express.mockApp.use.resetHistory();
+				instance.router = express.mockApp;
+				instance.setupClientAssetCompilation();
+			});
+
+			it('creates and mounts Resave Sass middleware, opting not to save compiled files', () => {
+				assert.calledOnce(resaveSass);
+				assert.isObject(resaveSass.firstCall.args[0]);
+				assert.strictEqual(resaveSass.firstCall.args[0].basePath, '/mock-base-path/mock-sass-path');
+				assert.strictEqual(resaveSass.firstCall.args[0].bundles, 'mock-sass-bundles');
+				assert.isFunction(resaveSass.firstCall.args[0].log.error);
+				assert.isFunction(resaveSass.firstCall.args[0].log.info);
+				assert.isNull(resaveSass.firstCall.args[0].savePath);
+				assert.calledWith(express.mockApp.use, resaveSass.mockMiddleware);
+			});
+
+			it('uses bound logging functions in the Resave Sass configuration', () => {
+				instance.log.error.resetHistory();
+				instance.log.info.resetHistory();
+				resaveSass.firstCall.args[0].log.error('mock error');
+				assert.calledOnce(instance.log.error);
+				assert.calledWithExactly(instance.log.error, '[assets:sass]:', 'mock error');
+				resaveSass.firstCall.args[0].log.info('mock info');
+				assert.calledOnce(instance.log.info);
+				assert.calledWithExactly(instance.log.info, '[assets:sass]:', 'mock info');
+			});
+
+			describe('when `options.env` is "production"', () => {
+
+				beforeEach(() => {
+					instance.env = 'production';
+					resaveSass.resetHistory();
+					instance.setupClientAssetCompilation();
+				});
+
+				it('creates and mounts Resave Sass middleware, saving compiled files', () => {
+					assert.calledOnce(resaveSass);
+					assert.isObject(resaveSass.firstCall.args[0]);
+					assert.strictEqual(resaveSass.firstCall.args[0].savePath, '/mock-base-path/mock-public-path');
+				});
+
+			});
+
+		});
+
 		describe('.startServer()', () => {
 
 			beforeEach(() => {
@@ -1121,7 +1189,7 @@ describe('lib/app', () => {
 
 		describe('.controllerSubPath', () => {
 
-			it('is set to "controller"', () => {
+			it('is set to "server/controller"', () => {
 				assert.strictEqual(App.defaultOptions.controllerSubPath, 'server/controller');
 			});
 
@@ -1175,7 +1243,7 @@ describe('lib/app', () => {
 
 		describe('.modelSubPath', () => {
 
-			it('is set to "model"', () => {
+			it('is set to "server/model"', () => {
 				assert.strictEqual(App.defaultOptions.modelSubPath, 'server/model');
 			});
 
@@ -1221,7 +1289,7 @@ describe('lib/app', () => {
 
 		describe('.publicSubPath', () => {
 
-			it('is set to "public"', () => {
+			it('is set to "client/public"', () => {
 				assert.strictEqual(App.defaultOptions.publicSubPath, 'client/public');
 			});
 
@@ -1239,6 +1307,24 @@ describe('lib/app', () => {
 
 			it('is set to `process.stdout`', () => {
 				assert.strictEqual(App.defaultOptions.requestLogOutputStream, process.stdout);
+			});
+
+		});
+
+		describe('.sassBundles', () => {
+
+			it('is set to "client/sass"', () => {
+				assert.deepEqual(App.defaultOptions.sassBundles, {
+					'/main.css': 'main.scss'
+				});
+			});
+
+		});
+
+		describe('.sassSubPath', () => {
+
+			it('is set to "client/sass"', () => {
+				assert.strictEqual(App.defaultOptions.sassSubPath, 'client/sass');
 			});
 
 		});
@@ -1277,7 +1363,7 @@ describe('lib/app', () => {
 
 		describe('.viewSubPath', () => {
 
-			it('is set to "view"', () => {
+			it('is set to "server/view"', () => {
 				assert.strictEqual(App.defaultOptions.viewSubPath, 'server/view');
 			});
 
