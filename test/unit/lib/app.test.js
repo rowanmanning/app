@@ -738,6 +738,7 @@ describe('lib/app', () => {
 				assert.calledOnce(renderErrorPage);
 				assert.isObject(renderErrorPage.firstCall.args[0]);
 				assert.isFunction(renderErrorPage.firstCall.args[0].errorLogger);
+				assert.isFunction(renderErrorPage.firstCall.args[0].errorLoggingFilter);
 				assert.deepEqual(renderErrorPage.firstCall.args[0].errorView, ['error', '@app:error']);
 				assert.isTrue(renderErrorPage.firstCall.args[0].includeErrorStack);
 				assert.calledWith(express.mockApp.use, renderErrorPage.mockMiddleware);
@@ -774,6 +775,78 @@ describe('lib/app', () => {
 					it('logs a string version of the error', () => {
 						assert.calledOnce(instance.log.error);
 						assert.calledWithExactly(instance.log.error, 'Error: mock error {"stack":"mock stack line 1\\nmock stack line 2"}');
+					});
+
+				});
+
+			});
+
+			describe('renderErrorPage `errorLoggingFilter` option: errorLoggingFilter(error)', () => {
+				let errorLoggingFilter;
+				let returnValue;
+
+				beforeEach(() => {
+					errorLoggingFilter = renderErrorPage.firstCall.args[0].errorLoggingFilter;
+					const error = new Error('mock error');
+					returnValue = errorLoggingFilter(error);
+				});
+
+				it('returns `true`', () => {
+					assert.isTrue(returnValue);
+				});
+
+				describe('when `error.status` is 500 or greater', () => {
+
+					beforeEach(() => {
+						const error = new Error('mock error');
+						error.status = 500;
+						returnValue = errorLoggingFilter(error);
+					});
+
+					it('returns `true`', () => {
+						assert.isTrue(returnValue);
+					});
+
+				});
+
+				describe('when `error.status` is 499 or lower', () => {
+
+					beforeEach(() => {
+						const error = new Error('mock error');
+						error.status = 499;
+						returnValue = errorLoggingFilter(error);
+					});
+
+					it('returns `false`', () => {
+						assert.isFalse(returnValue);
+					});
+
+				});
+
+				describe('when `error.statusCode` is 500 or greater', () => {
+
+					beforeEach(() => {
+						const error = new Error('mock error');
+						error.statusCode = 500;
+						returnValue = errorLoggingFilter(error);
+					});
+
+					it('returns `true`', () => {
+						assert.isTrue(returnValue);
+					});
+
+				});
+
+				describe('when `error.statusCode` is 499 or lower', () => {
+
+					beforeEach(() => {
+						const error = new Error('mock error');
+						error.statusCode = 499;
+						returnValue = errorLoggingFilter(error);
+					});
+
+					it('returns `false`', () => {
+						assert.isFalse(returnValue);
 					});
 
 				});
