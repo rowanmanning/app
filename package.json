@@ -27,23 +27,23 @@
     "express": "^4.17.1",
     "express-http-to-https": "^1.1.4",
     "express-session": "^1.17.0",
-    "helmet": "^3.21.3",
-    "http-errors": "^1.7.3",
-    "mongoose": "^5.9.4",
+    "helmet": "^3.23.3",
+    "http-errors": "^1.8.0",
+    "mongoose": "^5.10.17",
     "morgan": "^1.9.1",
     "resave-sass": "^2.0.0",
     "varname": "^2.0.3"
   },
   "devDependencies": {
-    "@rowanmanning/eslint-config": "^2.1.0",
+    "@rowanmanning/eslint-config": "^2.2.0",
     "@rowanmanning/make": "^2.1.0",
     "eslint": "^6.8.0",
-    "mocha": "^7.1.0",
+    "mocha": "^7.2.0",
     "mockery": "^2.1.0",
-    "nodemon": "^2.0.2",
-    "nyc": "^15.0.0",
+    "nodemon": "^2.0.6",
+    "nyc": "^15.1.0",
     "proclaim": "^3.6.0",
-    "sinon": "^9.0.1"
+    "sinon": "^9.2.1"
   },
   "main": "./lib/index.js",
   "scripts": {
