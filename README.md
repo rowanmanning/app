@@ -106,6 +106,15 @@ When you initialise a new application, the following options are available:
   - **`viewSubPath`**: `String`. The path to look for application views in. Will be prepended with `options.basePath`. Defaults to `server/view`
   - **`viewNamespacePaths`**: `Object`. Key/value pairs of view namespaces, see the [Renderer documentation](https://github.com/rowanmanning/renderer#namespaces). Defaults to `{}`
 
+### View data
+
+The following variables are automatically added to `response.locals`, and are available in all view files:
+
+  - **`app`**: `Object`. The `App` instance.
+  - **`request`**: `Object`. The Express `request` object that resulted in the render.
+  - **`currentUrl`**: `String`. The Express `request.url`.
+  - **`currentPath`**: `String`. The Express `request.path`.
+
 ### App events
 
 The `App` class extends [`EventEmitter`](https://nodejs.org/api/events.html), and you can listen on the following events:

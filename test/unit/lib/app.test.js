@@ -666,6 +666,10 @@ describe('lib/app', () => {
 					setResponseLocals(request, response, next);
 				});
 
+				it('sets `response.locals.request` to `request`', () => {
+					assert.strictEqual(response.locals.request, request);
+				});
+
 				it('sets `response.locals.currentUrl` to `request.url`', () => {
 					assert.strictEqual(response.locals.currentUrl, 'mock-url');
 				});
