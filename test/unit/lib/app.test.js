@@ -325,6 +325,7 @@ describe('lib/app', () => {
 				assert.calledOnce(mongoose.createConnection);
 				assert.calledWith(mongoose.createConnection, 'mock-database-url', {
 					useCreateIndex: true,
+					useFindAndModify: false,
 					useNewUrlParser: true,
 					useUnifiedTopology: true
 				});
