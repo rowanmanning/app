@@ -100,7 +100,7 @@ When you initialise a new application, the following options are available:
   - **`requestLogOutputStream`**: `Stream`. The stream to pipe request logs into. Defaults to `process.stdout`
   - **`sassBundles`**: `Object`. A map of CSS URLs and Sass source paths, where each key is the URL path that the CSS bundle is served on, and each value is the location of the entry point Sass source file for that bundle, see [Resave Sass](https://github.com/rowanmanning/resave-sass) for more information. The source paths are relative to `options.basePath` and `options.sassSubPath`. Defaults to `{'/main.css': 'main.scss'}`
   - **`sassSubPath`**: The path to look for Sass files in. Will be prepended with `options.basePath`. Defaults to `client/sass`
-  - **`sessionSecret`**: `String`. A secret used to sign session cookies with. If not set, sessions are disabled. Defaults to `null`
+  - **`sessionSecret`**: `String`. A secret used to sign session cookies with. If not set, sessions and flash messages are disabled. See [express-session](https://github.com/expressjs/session) and [connect-flash](https://github.com/jaredhanson/connect-flash) for documentation on these. Defaults to `null`
   - **`trustProxy`**: Express [trust proxy](http://expressjs.com/en/api.html#trust.proxy.options.table) settings. This is only used if `options.env` is "production". Defaults to `true`
   - **`useSecureCookies`**: `Boolean`. Whether to use secure cookies. Defaults to `true` when `options.env` is `production`, and `false` when `options.env` is `development`
   - **`viewSubPath`**: `String`. The path to look for application views in. Will be prepended with `options.basePath`. Defaults to `server/view`

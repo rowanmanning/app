@@ -13,7 +13,7 @@ module.exports = {
 		'max-statements': [
 			'warn',
 			{
-				max: 30
+				max: 35
 			}
 		]
 	}

@@ -7,6 +7,7 @@ const sinon = require('sinon');
 
 describe('lib/app', () => {
 	let App;
+	let connectFlash;
 	let connectMongo;
 	let EventEmitter;
 	let express;
@@ -28,6 +29,9 @@ describe('lib/app', () => {
 	beforeEach(() => {
 		process.env.NODE_ENV = 'test';
 		process.env.PORT = 'mock-port';
+
+		connectFlash = require('../mock/npm/connect-flash');
+		mockery.registerMock('connect-flash', connectFlash);
 
 		connectMongo = require('../mock/npm/connect-mongo');
 		mockery.registerMock('connect-mongo', connectMongo);
@@ -620,6 +624,16 @@ describe('lib/app', () => {
 				assert.calledWithExactly(instance.log.info, '[setup:sessions]: sessions set up successfully');
 			});
 
+			it('creates and mounts flash message middleware', () => {
+				assert.calledOnce(connectFlash);
+				assert.calledWithExactly(connectFlash);
+				assert.calledWith(express.mockApp.use, connectFlash.mockMiddleware);
+			});
+
+			it('sets `instance.flashMessageMiddleware` to the created flash message middleware', () => {
+				assert.strictEqual(instance.flashMessageMiddleware, connectFlash.mockMiddleware);
+			});
+
 			it('sets the `app` application local to the application instance', () => {
 				assert.strictEqual(express.mockApp.locals.app, instance);
 			});
@@ -945,6 +959,7 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					delete instance.options.sessionSecret;
+					connectFlash.resetHistory();
 					connectMongo.MongoStore.resetHistory();
 					session.Store.resetHistory();
 					express.mockApp.use.resetHistory();
@@ -963,6 +978,11 @@ describe('lib/app', () => {
 				it('does not create or mount session middleware', () => {
 					assert.notCalled(session);
 					assert.neverCalledWith(express.mockApp.use, session.mockMiddleware);
+				});
+
+				it('does not create or mount flash message middleware', () => {
+					assert.notCalled(connectFlash);
+					assert.neverCalledWith(express.mockApp.use, connectFlash.mockMiddleware);
 				});
 
 				it('logs an error to explain that sessions are not configured', () => {
