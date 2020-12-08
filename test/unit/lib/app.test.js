@@ -118,6 +118,7 @@ describe('lib/app', () => {
 				requestLogOutputStream: 'mock-request-log-output-stream',
 				sassSubPath: 'mock-sass-path',
 				sassBundles: 'mock-sass-bundles',
+				securityConfig: 'mock-security-config',
 				sessionSecret: 'mock-session-secret',
 				trustProxy: 'mock-trust-proxy',
 				useSecureCookies: 'mock-use-secure-cookies',
@@ -568,7 +569,7 @@ describe('lib/app', () => {
 
 			it('creates and mounts Helmet middleware', () => {
 				assert.calledOnce(helmet);
-				assert.calledWithExactly(helmet);
+				assert.calledWithExactly(helmet, 'mock-security-config');
 				assert.calledWith(express.mockApp.use, helmet.mockMiddleware);
 			});
 
