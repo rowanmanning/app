@@ -11,14 +11,13 @@ describe('lib/app', () => {
 	let EventEmitter;
 	let express;
 	let expressHttpToHttps;
+	let expressPreactViews;
 	let helmet;
-	let hijackExpressRender;
 	let http;
 	let mongoose;
 	let morgan;
 	let notFound;
 	let os;
-	let Renderer;
 	let renderErrorPage;
 	let requireAll;
 	let resaveSass;
@@ -44,11 +43,11 @@ describe('lib/app', () => {
 		expressHttpToHttps = require('../mock/npm/express-http-to-https');
 		mockery.registerMock('express-http-to-https', expressHttpToHttps);
 
+		expressPreactViews = require('../mock/npm/express-preact-views');
+		mockery.registerMock('express-preact-views', expressPreactViews);
+
 		helmet = require('../mock/npm/helmet');
 		mockery.registerMock('helmet', helmet);
-
-		hijackExpressRender = require('../mock/npm/@rowanmanning/hijack-express-render');
-		mockery.registerMock('@rowanmanning/hijack-express-render', hijackExpressRender);
 
 		http = require('../mock/node/http');
 		mockery.registerMock('http', http);
@@ -64,9 +63,6 @@ describe('lib/app', () => {
 
 		os = require('../mock/node/os');
 		mockery.registerMock('os', os);
-
-		Renderer = require('../mock/npm/@rowanmanning/renderer');
-		mockery.registerMock('@rowanmanning/renderer', Renderer);
 
 		renderErrorPage = require('../mock/npm/@rowanmanning/render-error-page');
 		mockery.registerMock('@rowanmanning/render-error-page', renderErrorPage);
@@ -103,6 +99,7 @@ describe('lib/app', () => {
 				databaseUrl: 'mock-database-url',
 				enforceHttps: true,
 				env: 'mock-env',
+				expressPreactOptions: 'mock-express-preact-options',
 				logger: {
 					info: sinon.stub(),
 					error: sinon.stub(),
@@ -248,7 +245,6 @@ describe('lib/app', () => {
 
 			beforeEach(() => {
 				sinon.stub(App.prototype, 'setupDatabase');
-				sinon.stub(App.prototype, 'setupRenderer');
 				sinon.stub(App.prototype, 'setupExpress');
 				sinon.stub(App.prototype, 'startServer');
 				returnValue = instance.setup();
@@ -257,11 +253,6 @@ describe('lib/app', () => {
 			it('calls `instance.setupDatabase`', () => {
 				assert.calledOnce(instance.setupDatabase);
 				assert.calledWith(instance.setupDatabase);
-			});
-
-			it('calls `instance.setupRenderer`', () => {
-				assert.calledOnce(instance.setupRenderer);
-				assert.calledWith(instance.setupRenderer);
 			});
 
 			it('calls `instance.setupExpress`', () => {
@@ -277,7 +268,6 @@ describe('lib/app', () => {
 			it('calls the init methods in the expected order', () => {
 				assert.callOrder(
 					instance.setupDatabase,
-					instance.setupRenderer,
 					instance.setupExpress,
 					instance.startServer
 				);
@@ -469,32 +459,10 @@ describe('lib/app', () => {
 
 		});
 
-		describe('.setupRenderer()', () => {
-
-			beforeEach(() => {
-				instance.paths.view = 'mock-instance-view-path';
-				instance.setupRenderer();
-			});
-
-			it('creates a Renderer instance', () => {
-				assert.calledOnce(Renderer);
-				assert.calledWithNew(Renderer);
-				assert.isObject(Renderer.firstCall.args[0]);
-				assert.strictEqual(Renderer.firstCall.args[0].path, 'mock-instance-view-path');
-				assert.isUndefined(Renderer.firstCall.args[0].namespacePaths);
-			});
-
-			it('sets `instance.renderer` to the created renderer', () => {
-				assert.strictEqual(instance.renderer, Renderer.mockInstance);
-			});
-
-		});
-
 		describe('.setupExpress()', () => {
 
 			beforeEach(() => {
 				instance.db = mongoose.mockConnection;
-				instance.renderer = Renderer.mockInstance;
 				instance.setupControllers = sinon.stub();
 				instance.setupClientAssetCompilation = sinon.stub();
 				instance.setupExpress();
@@ -543,13 +511,13 @@ describe('lib/app', () => {
 				assert.neverCalledWith(express.mockApp.set, 'trust proxy');
 			});
 
-			it('hijacks the Express render methods', () => {
-				assert.calledOnce(hijackExpressRender);
-				assert.calledWith(hijackExpressRender, express.mockApp);
-				assert.isFunction(hijackExpressRender.firstCall.args[1]);
-
-				hijackExpressRender.firstCall.args[1]();
-				assert.calledOnce(Renderer.mockInstance.render);
+			it('sets up Express Preact views', () => {
+				assert.calledWithExactly(express.mockApp.set, 'views', '/mock-base-path/mock-view-path');
+				assert.calledWithExactly(express.mockApp.set, 'view engine', 'jsx');
+				assert.calledOnce(expressPreactViews.createEngine);
+				assert.calledWithExactly(expressPreactViews.createEngine, 'mock-express-preact-options');
+				assert.calledOnce(express.mockApp.engine);
+				assert.calledWithExactly(express.mockApp.engine, 'jsx', expressPreactViews.mockViewEngine);
 			});
 
 			it('creates and mounts Helmet middleware', () => {
@@ -858,7 +826,6 @@ describe('lib/app', () => {
 				assert.callOrder(
 					express,
 					http.createServer,
-					hijackExpressRender,
 					instance.express.use.withArgs(helmet.mockMiddleware),
 					instance.express.use.withArgs(expressHttpToHttps.mockMiddleware),
 					instance.express.use.withArgs(express.urlencoded.mockMiddleware),
@@ -1311,6 +1278,16 @@ describe('lib/app', () => {
 
 		});
 
+		describe('.expressPreactOptions', () => {
+
+			it('is set to beautify output by default', () => {
+				assert.deepEqual(App.defaultOptions.expressPreactOptions, {
+					beautify: true
+				});
+			});
+
+		});
+
 		describe('.logger', () => {
 
 			it('is set to `console`', () => {
@@ -1445,22 +1422,6 @@ describe('lib/app', () => {
 				assert.strictEqual(App.defaultOptions.viewSubPath, 'server/view');
 			});
 
-		});
-
-	});
-
-	describe('.html', () => {
-
-		it('aliases `Renderer.html`', () => {
-			assert.strictEqual(App.html, Renderer.html);
-		});
-
-	});
-
-	describe('.Partial', () => {
-
-		it('aliases `Renderer.Partial`', () => {
-			assert.strictEqual(App.Partial, Renderer.Partial);
 		});
 
 	});

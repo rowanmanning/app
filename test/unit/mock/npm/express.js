@@ -5,6 +5,7 @@ const sinon = require('sinon');
 const express = sinon.stub();
 express.mockApp = {
 	enable: sinon.stub(),
+	engine: sinon.stub(),
 	locals: {},
 	set: sinon.stub(),
 	use: sinon.stub()

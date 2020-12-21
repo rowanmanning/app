@@ -1,5 +1,8 @@
 'use strict';
 
 module.exports = {
-	extends: '@rowanmanning/eslint-config'
+	extends: [
+		'@rowanmanning/eslint-config',
+		'@rowanmanning/eslint-config/jsx'
+	]
 };
