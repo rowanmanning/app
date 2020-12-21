@@ -2,7 +2,6 @@
 
 const assert = require('proclaim');
 const mockery = require('mockery');
-const path = require('path');
 const sinon = require('sinon');
 
 describe('lib/app', () => {
@@ -471,22 +470,10 @@ describe('lib/app', () => {
 		});
 
 		describe('.setupRenderer()', () => {
-			let defaultedNamespaceConfig;
 
 			beforeEach(() => {
 				instance.paths.view = 'mock-instance-view-path';
-				defaultedNamespaceConfig = {
-					mockDefaultedConfig: true
-				};
-				sinon.stub(Object, 'assign').returns(defaultedNamespaceConfig);
 				instance.setupRenderer();
-			});
-
-			it('defaults the `namespacePaths` option, adding internal paths', () => {
-				assert.calledOnce(Object.assign);
-				assert.calledWith(Object.assign, {}, 'mock-view-namespace-paths', {
-					'@app': App.internalPaths.view
-				});
 			});
 
 			it('creates a Renderer instance', () => {
@@ -494,7 +481,7 @@ describe('lib/app', () => {
 				assert.calledWithNew(Renderer);
 				assert.isObject(Renderer.firstCall.args[0]);
 				assert.strictEqual(Renderer.firstCall.args[0].path, 'mock-instance-view-path');
-				assert.strictEqual(Renderer.firstCall.args[0].namespacePaths, defaultedNamespaceConfig);
+				assert.isUndefined(Renderer.firstCall.args[0].namespacePaths);
 			});
 
 			it('sets `instance.renderer` to the created renderer', () => {
@@ -510,8 +497,6 @@ describe('lib/app', () => {
 				instance.renderer = Renderer.mockInstance;
 				instance.setupControllers = sinon.stub();
 				instance.setupClientAssetCompilation = sinon.stub();
-				express.static.onCall(0).returns('mock-static-middleware-1');
-				express.static.onCall(1).returns('mock-static-middleware-2');
 				instance.setupExpress();
 			});
 
@@ -732,15 +717,11 @@ describe('lib/app', () => {
 			});
 
 			it('creates and mounts static middleware', () => {
-				assert.calledTwice(express.static);
-				assert.calledWith(express.static.firstCall, instance.paths.public, {
+				assert.calledOnce(express.static);
+				assert.calledWith(express.static, instance.paths.public, {
 					maxAge: 0
 				});
-				assert.calledWith(express.static.secondCall, App.internalPaths.public, {
-					maxAge: 0
-				});
-				assert.calledWith(express.mockApp.use, 'mock-static-middleware-1');
-				assert.calledWith(express.mockApp.use, '/@app', 'mock-static-middleware-2');
+				assert.calledWith(express.mockApp.use, express.static.mockMiddleware);
 			});
 
 			it('initialises client-side asset compilation', () => {
@@ -759,7 +740,7 @@ describe('lib/app', () => {
 				assert.isObject(renderErrorPage.firstCall.args[0]);
 				assert.isFunction(renderErrorPage.firstCall.args[0].errorLogger);
 				assert.isFunction(renderErrorPage.firstCall.args[0].errorLoggingFilter);
-				assert.deepEqual(renderErrorPage.firstCall.args[0].errorView, ['error', '@app:error']);
+				assert.isUndefined(renderErrorPage.firstCall.args[0].errorView);
 				assert.isTrue(renderErrorPage.firstCall.args[0].includeErrorStack);
 				assert.calledWith(express.mockApp.use, renderErrorPage.mockMiddleware);
 			});
@@ -884,8 +865,7 @@ describe('lib/app', () => {
 					instance.express.use.withArgs(express.json.mockMiddleware),
 					instance.express.use.withArgs(session.mockMiddleware),
 					instance.express.use.withArgs(morgan.mockMiddleware),
-					instance.express.use.withArgs('mock-static-middleware-1'),
-					instance.express.use.withArgs('/@app', 'mock-static-middleware-2'),
+					instance.express.use.withArgs(express.static.mockMiddleware),
 					instance.express.use.withArgs(notFound.mockMiddleware),
 					instance.express.use.withArgs(renderErrorPage.mockMiddleware)
 				);
@@ -905,9 +885,8 @@ describe('lib/app', () => {
 				});
 
 				it('creates static middleware with the configured `publicCacheMaxAge` option', () => {
-					assert.calledTwice(express.static);
+					assert.calledOnce(express.static);
 					assert.strictEqual(express.static.firstCall.args[1].maxAge, 'mock-cache-max-age');
-					assert.strictEqual(express.static.secondCall.args[1].maxAge, 'mock-cache-max-age');
 				});
 
 				it('creates renderErrorPage middleware without including the error stack', () => {
@@ -1464,33 +1443,6 @@ describe('lib/app', () => {
 
 			it('is set to "server/view"', () => {
 				assert.strictEqual(App.defaultOptions.viewSubPath, 'server/view');
-			});
-
-		});
-
-	});
-
-	describe('.internalPaths', () => {
-
-		it('is an object', () => {
-			assert.isNotNull(App.internalPaths);
-			assert.strictEqual(typeof App.internalPaths, 'object');
-		});
-
-		describe('.public', () => {
-
-			it('is set to the expected file path', () => {
-				const expectedPath = path.resolve(__dirname, '../../../lib/public');
-				assert.strictEqual(App.internalPaths.public, expectedPath);
-			});
-
-		});
-
-		describe('.view', () => {
-
-			it('is set to the expected file path', () => {
-				const expectedPath = path.resolve(__dirname, '../../../lib/view');
-				assert.strictEqual(App.internalPaths.view, expectedPath);
 			});
 
 		});
