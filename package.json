@@ -22,7 +22,7 @@
     "@rowanmanning/render-error-page": "^1.1.0",
     "@rowanmanning/require-all": "^1.0.0",
     "connect-flash": "^0.1.1",
-    "connect-mongo": "^3.2.0",
+    "connect-mongo": "^4.3.0",
     "express": "^4.17.1",
     "express-http-to-https": "^1.1.4",
     "express-preact-views": "^1.1.0",
