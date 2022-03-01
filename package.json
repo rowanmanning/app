@@ -40,7 +40,7 @@
     "express-session": "^1.17.0",
     "helmet": "^4.2.0",
     "http-errors": "^1.8.0",
-    "mongoose": "^5.11.8",
+    "mongoose": "^6.2.4",
     "morgan": "^1.9.1",
     "preact": "^10.5.7",
     "resave-sass": "^2.0.0",
