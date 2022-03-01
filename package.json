@@ -29,7 +29,7 @@
     "project:fix": "npx --yes @rowanmanning/validate-project --type git node-library --fix"
   },
   "dependencies": {
-    "@rowanmanning/not-found": "^1.0.2",
+    "@rowanmanning/not-found": "^2.0.3",
     "@rowanmanning/render-error-page": "^1.1.0",
     "@rowanmanning/require-all": "^1.0.0",
     "connect-flash": "^0.1.1",
