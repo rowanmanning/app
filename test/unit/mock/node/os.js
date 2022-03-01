@@ -1,7 +1,8 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-module.exports = {
-	hostname: sinon.stub().returns('mock-hostname')
-};
+const hostname = td.func();
+td.when(hostname(), {ignoreExtraArgs: true}).thenReturn('mock-hostname');
+
+module.exports = {hostname};

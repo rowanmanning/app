@@ -1,14 +1,14 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
 const expressPreactViews = {
-	createEngine: sinon.stub(),
+	createEngine: td.func(),
 	mockViewEngine: {
 		isMockViewEngine: true
 	}
 };
 
-expressPreactViews.createEngine.returns(expressPreactViews.mockViewEngine);
+td.when(expressPreactViews.createEngine(), {ignoreExtraArgs: true}).thenReturn(expressPreactViews.mockViewEngine);
 
 module.exports = expressPreactViews;

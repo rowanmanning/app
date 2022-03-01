@@ -1,6 +1,6 @@
 'use strict';
 
-const assert = require('proclaim');
+const {assert} = require('chai');
 const index = require('../../../preact/index');
 const preact = require('preact');
 

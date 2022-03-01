@@ -1,7 +1,8 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const requireAll = sinon.stub().returns([]);
+const requireAll = td.func();
+td.when(requireAll(), {ignoreExtraArgs: true}).thenReturn([]);
 
 module.exports = requireAll;

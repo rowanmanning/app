@@ -1,32 +1,11 @@
 'use strict';
 
-const assert = require('proclaim');
-const mockery = require('mockery');
-const sinon = require('sinon');
+const td = require('testdouble');
 
-sinon.assert.expose(assert, {
-	includeFail: false,
-	prefix: ''
+td.config({
+	ignoreWarnings: true
 });
 
-global.setupAllMocking = () => {
-	mockery.enable({
-		useCleanCache: true,
-		warnOnUnregistered: false,
-		warnOnReplace: false
-	});
-};
-
-global.teardownAllMocking = () => {
-	mockery.deregisterAll();
-	mockery.disable();
-	sinon.restore();
-};
-
-global.refreshAllMocking = () => {
-	global.teardownAllMocking();
-	global.setupAllMocking();
-};
-
-beforeEach(global.setupAllMocking);
-afterEach(global.teardownAllMocking);
+afterEach(() => {
+	td.reset();
+});

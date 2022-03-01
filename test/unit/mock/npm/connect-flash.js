@@ -1,9 +1,9 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const connectFlash = sinon.stub();
-connectFlash.mockMiddleware = sinon.stub();
-connectFlash.returns(connectFlash.mockMiddleware);
+const connectFlash = td.func('connectFlash');
+connectFlash.mockMiddleware = td.func('connectFlash middleware');
+td.when(connectFlash()).thenReturn(connectFlash.mockMiddleware);
 
 module.exports = connectFlash;

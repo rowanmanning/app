@@ -1,8 +1,7 @@
 'use strict';
 
-const assert = require('proclaim');
-const mockery = require('mockery');
-const sinon = require('sinon');
+const {assert} = require('chai');
+const td = require('testdouble');
 
 describe('lib/app', () => {
 	let App;
@@ -22,69 +21,35 @@ describe('lib/app', () => {
 	let requireAll;
 	let resaveSass;
 	let session;
-	let varname;
 
 	beforeEach(() => {
 		process.env.NODE_ENV = 'test';
 		process.env.PORT = 'mock-port';
 
-		connectFlash = require('../mock/npm/connect-flash');
-		mockery.registerMock('connect-flash', connectFlash);
-
-		connectMongo = require('../mock/npm/connect-mongo');
-		mockery.registerMock('connect-mongo', connectMongo);
-
-		EventEmitter = require('../mock/node/events');
-		mockery.registerMock('events', EventEmitter);
-
-		express = require('../mock/npm/express');
-		mockery.registerMock('express', express);
-
-		expressHttpToHttps = require('../mock/npm/express-http-to-https');
-		mockery.registerMock('express-http-to-https', expressHttpToHttps);
-
-		expressPreactViews = require('../mock/npm/express-preact-views');
-		mockery.registerMock('express-preact-views', expressPreactViews);
-
-		helmet = require('../mock/npm/helmet');
-		mockery.registerMock('helmet', helmet);
-
-		http = require('../mock/node/http');
-		mockery.registerMock('http', http);
-
-		mongoose = require('../mock/npm/mongoose');
-		mockery.registerMock('mongoose', mongoose);
-
-		morgan = require('../mock/npm/morgan');
-		mockery.registerMock('morgan', morgan);
-
-		notFound = require('../mock/npm/@rowanmanning/not-found');
-		mockery.registerMock('@rowanmanning/not-found', notFound);
-
-		os = require('../mock/node/os');
-		mockery.registerMock('os', os);
-
-		renderErrorPage = require('../mock/npm/@rowanmanning/render-error-page');
-		mockery.registerMock('@rowanmanning/render-error-page', renderErrorPage);
-
-		requireAll = require('../mock/npm/@rowanmanning/require-all');
-		mockery.registerMock('@rowanmanning/require-all', requireAll);
-
-		resaveSass = require('../mock/npm/resave-sass');
-		mockery.registerMock('resave-sass', resaveSass);
-
-		session = require('../mock/npm/express-session');
-		mockery.registerMock('express-session', session);
-
-		varname = require('../mock/npm/varname');
-		mockery.registerMock('varname', varname);
+		connectFlash = td.replace('connect-flash', require('../mock/npm/connect-flash'));
+		td.when(connectFlash()).thenReturn(connectFlash.mockMiddleware);
+		connectMongo = td.replace('connect-mongo', require('../mock/npm/connect-mongo'));
+		EventEmitter = td.replace('events', require('../mock/node/events'));
+		express = td.replace('express', require('../mock/npm/express'));
+		expressHttpToHttps = td.replace('express-http-to-https', require('../mock/npm/express-http-to-https'));
+		expressPreactViews = td.replace('express-preact-views', require('../mock/npm/express-preact-views'));
+		helmet = td.replace('helmet', require('../mock/npm/helmet'));
+		http = td.replace('http', require('../mock/node/http'));
+		mongoose = td.replace('mongoose', require('../mock/npm/mongoose'));
+		morgan = td.replace('morgan', require('../mock/npm/morgan'));
+		notFound = td.replace('@rowanmanning/not-found', require('../mock/npm/@rowanmanning/not-found'));
+		os = td.replace('os', require('../mock/node/os'));
+		renderErrorPage = td.replace('@rowanmanning/render-error-page', require('../mock/npm/@rowanmanning/render-error-page'));
+		requireAll = td.replace('@rowanmanning/require-all', require('../mock/npm/@rowanmanning/require-all'));
+		resaveSass = td.replace('resave-sass', require('../mock/npm/resave-sass'));
+		session = td.replace('express-session', require('../mock/npm/express-session'));
+		td.replace('varname', require('../mock/npm/varname'));
 
 		App = require('../../../lib/app');
 	});
 
 	it('creates a MongoStore using the session middleware', () => {
-		assert.calledOnce(connectMongo);
-		assert.calledWithExactly(connectMongo, session);
+		td.verify(connectMongo(session), {times: 1});
 	});
 
 	describe('new App(options)', () => {
@@ -101,9 +66,9 @@ describe('lib/app', () => {
 				env: 'mock-env',
 				expressPreactOptions: 'mock-express-preact-options',
 				logger: {
-					info: sinon.stub(),
-					error: sinon.stub(),
-					debug: sinon.stub()
+					info: td.func(),
+					error: td.func(),
+					debug: td.func()
 				},
 				modelSubPath: 'mock-model-path',
 				name: 'mock-name',
@@ -121,18 +86,18 @@ describe('lib/app', () => {
 				viewNamespacePaths: 'mock-view-namespace-paths',
 				viewSubPath: 'mock-view-path'
 			};
-			sinon.stub(App, 'applyDefaultOptions').returns(defaultedOptions);
 			userOptions = {mockUserOptions: true};
+			td.replace(App, 'applyDefaultOptions');
+			td.when(App.applyDefaultOptions(userOptions)).thenReturn(defaultedOptions);
 			instance = new App(userOptions);
 		});
 
 		it('extends EventEmitter', () => {
-			assert.isInstanceOf(instance, EventEmitter);
+			assert.instanceOf(instance, EventEmitter);
 		});
 
 		it('calls `App.applyDefaultOptions` with `options`', () => {
-			assert.calledOnce(App.applyDefaultOptions);
-			assert.calledWith(App.applyDefaultOptions, userOptions);
+			td.verify(App.applyDefaultOptions(userOptions), {times: 1});
 		});
 
 		describe('.options', () => {
@@ -244,33 +209,22 @@ describe('lib/app', () => {
 			let returnValue;
 
 			beforeEach(() => {
-				sinon.stub(App.prototype, 'setupDatabase');
-				sinon.stub(App.prototype, 'setupExpress');
-				sinon.stub(App.prototype, 'startServer');
+				td.replace(App.prototype, 'setupDatabase');
+				td.replace(App.prototype, 'setupExpress');
+				td.replace(App.prototype, 'startServer');
 				returnValue = instance.setup();
 			});
 
 			it('calls `instance.setupDatabase`', () => {
-				assert.calledOnce(instance.setupDatabase);
-				assert.calledWith(instance.setupDatabase);
+				td.verify(instance.setupDatabase(), {times: 1});
 			});
 
 			it('calls `instance.setupExpress`', () => {
-				assert.calledOnce(instance.setupExpress);
-				assert.calledWith(instance.setupExpress);
+				td.verify(instance.setupExpress(), {times: 1});
 			});
 
 			it('calls `instance.startServer`', () => {
-				assert.calledOnce(instance.startServer);
-				assert.calledWith(instance.startServer);
-			});
-
-			it('calls the init methods in the expected order', () => {
-				assert.callOrder(
-					instance.setupDatabase,
-					instance.setupExpress,
-					instance.startServer
-				);
+				td.verify(instance.startServer(), {times: 1});
 			});
 
 			it('returns the instance', () => {
@@ -283,7 +237,7 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					mockError = new Error('mock error');
-					App.prototype.startServer.throws(mockError);
+					td.when(App.prototype.startServer()).thenThrow(mockError);
 					try {
 						returnValue = instance.setup();
 					} catch (error) {
@@ -296,8 +250,7 @@ describe('lib/app', () => {
 				});
 
 				it('emits a `setup:error` event, passing the error to that', () => {
-					assert.calledOnce(instance.emit);
-					assert.calledWithExactly(instance.emit, 'setup:error', mockError);
+					td.verify(instance.emit('setup:error', mockError), {times: 1});
 				});
 
 				it('returns the instance', () => {
@@ -311,79 +264,73 @@ describe('lib/app', () => {
 		describe('.setupDatabase()', () => {
 
 			beforeEach(() => {
-				sinon.stub(App.prototype, 'setupModels');
+				td.replace(App.prototype, 'setupModels');
 				instance.setupDatabase();
 			});
 
 			it('creates a Mongoose connection using `options.databaseUrl`', () => {
-				assert.calledOnce(mongoose.createConnection);
-				assert.calledWith(mongoose.createConnection, 'mock-database-url', {
+				td.verify(mongoose.createConnection('mock-database-url', {
 					useCreateIndex: true,
 					useFindAndModify: false,
 					useNewUrlParser: true,
 					useUnifiedTopology: true
-				});
+				}), {times: 1});
 			});
 
 			it('sets `instance.db` to the created Mongoose connection', () => {
-				assert.strictEqual(instance.db, mongoose.createConnection.firstCall.returnValue);
+				assert.strictEqual(instance.db, mongoose.mockConnection);
 			});
 
 			it('listens for the connection `connected` event', () => {
-				assert.calledOnce(instance.db.on);
-				assert.isFunction(instance.db.on.firstCall.args[1]);
+				td.verify(instance.db.on('connected', td.matchers.isA(Function)), {times: 1});
 			});
 
 			describe('instance.db `connected` handler', () => {
 
 				beforeEach(() => {
-					instance.emit.resetHistory();
-					instance.db.on.firstCall.args[1]();
+					instance.emit = td.func();
+					td.explain(instance.db.on).calls[0].args[1]();
 				});
 
 				it('logs that the database has connected', () => {
-					assert.calledWithExactly(instance.log.debug, '[setup:database]: connected');
+					td.verify(instance.log.debug('[setup:database]: connected'));
 				});
 
 				it('emits a `database:connected` event', () => {
-					assert.calledOnce(instance.emit);
-					assert.calledWithExactly(instance.emit, 'database:connected');
+					td.verify(instance.emit('database:connected'), {times: 1});
 				});
 
 			});
 
 			it('calls `instance.setupModels`', () => {
-				assert.calledOnce(instance.setupModels);
-				assert.calledWith(instance.setupModels);
-			});
-
-			it('calls everything in the expected order', () => {
-				assert.callOrder(
-					mongoose.createConnection,
-					instance.db.on,
-					instance.setupModels
-				);
+				td.verify(instance.setupModels(), {times: 1});
 			});
 
 			describe('when `options.databaseUrl` is not set', () => {
 
 				beforeEach(() => {
 					instance.options.databaseUrl = undefined;
-					mongoose.createConnection.resetHistory();
-					instance.setupModels.resetHistory();
+					mongoose.createConnection = td.func();
+					instance.setupModels = td.func();
 					instance.setupDatabase();
 				});
 
 				it('does not create a Mognoose connection', () => {
-					assert.notCalled(mongoose.createConnection);
+					td.verify(mongoose.createConnection(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
 				it('does not call `instance.setupModels`', () => {
-					assert.notCalled(instance.setupModels);
+					td.verify(instance.setupModels(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
 				it('logs an error to explain that the database has not been set up', () => {
-					assert.calledWithExactly(instance.log.error, '[setup:database]: missing "databaseUrl" option, database not set up');
+					td.verify(instance.log.error('[setup:database]: missing "databaseUrl" option, database not set up'));
 				});
 
 			});
@@ -391,44 +338,46 @@ describe('lib/app', () => {
 		});
 
 		describe('.setupModels()', () => {
+			let mockSchema1;
+			let mockSchema2;
 
 			beforeEach(() => {
 				instance.models = {};
 				instance.db = mongoose.mockConnection;
 				instance.paths.model = 'mock-instance-model-path';
-				requireAll.returns([
-					{
-						name: 'first/mock/name',
-						moduleExports: sinon.stub().returns('FirstMockSchema')
-					},
-					{
-						name: 'second/mock/name',
-						moduleExports: sinon.stub().returns('SecondMockSchema')
-					}
+				mockSchema1 = {
+					name: 'first/mock/name',
+					moduleExports: td.func()
+				};
+				td.when(mockSchema1.moduleExports(), {ignoreExtraArgs: true}).thenReturn('FirstMockSchema');
+				mockSchema2 = {
+					name: 'second/mock/name',
+					moduleExports: td.func()
+				};
+				td.when(mockSchema2.moduleExports(), {ignoreExtraArgs: true}).thenReturn('SecondMockSchema');
+				td.when(requireAll(), {ignoreExtraArgs: true}).thenReturn([
+					mockSchema1,
+					mockSchema2
 				]);
-				mongoose.mockConnection.model.withArgs('FirstMockName').returns('FirstMockModel');
-				mongoose.mockConnection.model.withArgs('SecondMockName').returns('SecondMockModel');
+				td.when(mongoose.mockConnection.model('FirstMockName', 'FirstMockSchema')).thenReturn('FirstMockModel');
+				td.when(mongoose.mockConnection.model('SecondMockName', 'SecondMockSchema')).thenReturn('SecondMockModel');
 				instance.setupModels();
 			});
 
 			it('requires all of the models and initialises them', () => {
-				assert.calledOnce(requireAll);
-				assert.calledWithExactly(requireAll, 'mock-instance-model-path');
-				assert.calledOnce(requireAll.firstCall.returnValue[0].moduleExports);
-				assert.calledWithExactly(requireAll.firstCall.returnValue[0].moduleExports, instance);
-				assert.calledOnce(requireAll.firstCall.returnValue[1].moduleExports);
-				assert.calledWithExactly(requireAll.firstCall.returnValue[1].moduleExports, instance);
+				td.verify(requireAll('mock-instance-model-path'), {times: 1});
+				td.verify(mockSchema1.moduleExports(instance), {times: 1});
+				td.verify(mockSchema2.moduleExports(instance), {times: 1});
 			});
 
 			it('registers each of the model schemas with Mongoose, camel-casing the names', () => {
-				assert.calledTwice(mongoose.mockConnection.model);
-				assert.calledWithExactly(mongoose.mockConnection.model, 'FirstMockName', 'FirstMockSchema');
-				assert.calledWithExactly(mongoose.mockConnection.model, 'SecondMockName', 'SecondMockSchema');
+				td.verify(mongoose.mockConnection.model('FirstMockName', 'FirstMockSchema'), {times: 1});
+				td.verify(mongoose.mockConnection.model('SecondMockName', 'SecondMockSchema'), {times: 1});
 			});
 
 			it('logs that each model has been initialised', () => {
-				assert.calledWithExactly(instance.log.debug, '[setup:models]: "FirstMockName" model initialised');
-				assert.calledWithExactly(instance.log.debug, '[setup:models]: "SecondMockName" model initialised');
+				td.verify(instance.log.debug('[setup:models]: "FirstMockName" model initialised'), {times: 1});
+				td.verify(instance.log.debug('[setup:models]: "SecondMockName" model initialised'), {times: 1});
 			});
 
 			it('stores created models on the `models` property', () => {
@@ -442,7 +391,7 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					mockError = new Error('mock error');
-					requireAll.throws(mockError);
+					td.when(requireAll(), {ignoreExtraArgs: true}).thenThrow(mockError);
 					try {
 						instance.setupModels();
 					} catch (error) {
@@ -463,111 +412,97 @@ describe('lib/app', () => {
 
 			beforeEach(() => {
 				instance.db = mongoose.mockConnection;
-				instance.setupControllers = sinon.stub();
-				instance.setupClientAssetCompilation = sinon.stub();
+				instance.setupControllers = td.func();
+				instance.setupClientAssetCompilation = td.func();
 				instance.setupExpress();
 			});
 
 			it('creates an Express application', () => {
-				assert.calledOnce(express);
-				assert.calledWithExactly(express);
+				td.verify(express(), {times: 1});
 			});
 
 			it('sets `instance.express` to the created Express application', () => {
-				assert.strictEqual(instance.express, express.firstCall.returnValue);
+				assert.strictEqual(instance.express, express.mockApp);
 			});
 
 			it('sets `instance.router` to the created Express application', () => {
-				assert.strictEqual(instance.router, express.firstCall.returnValue);
+				assert.strictEqual(instance.router, express.mockApp);
 			});
 
 			it('creates an HTTP server with the created Express application', () => {
-				assert.calledOnce(http.createServer);
-				assert.calledWithExactly(http.createServer, instance.express);
+				td.verify(http.createServer(instance.express), {times: 1});
 			});
 
 			it('sets `instance.server` to the created HTTP server', () => {
-				assert.strictEqual(instance.server, http.createServer.firstCall.returnValue);
+				assert.strictEqual(instance.server, http.mockServer);
 			});
 
 			it('emits a `server:created` event, passing the server to that', () => {
-				assert.calledOnce(instance.emit);
-				assert.calledWithExactly(instance.emit, 'server:created', instance.server);
+				td.verify(instance.emit('server:created', instance.server), {times: 1});
 			});
 
 			it('enables case-sensitive routing', () => {
-				assert.calledWithExactly(express.mockApp.enable, 'case sensitive routing');
+				td.verify(express.mockApp.enable('case sensitive routing'), {times: 1});
 			});
 
 			it('enables strict routing', () => {
-				assert.calledWithExactly(express.mockApp.enable, 'strict routing');
+				td.verify(express.mockApp.enable('strict routing'), {times: 1});
 			});
 
 			it('sets JSON whitespace to four spaces', () => {
-				assert.calledWithExactly(express.mockApp.set, 'json spaces', 4);
+				td.verify(express.mockApp.set('json spaces', 4), {times: 1});
 			});
 
 			it('does not set the trust proxy option', () => {
-				assert.neverCalledWith(express.mockApp.set, 'trust proxy');
+				td.verify(express(express.mockApp.set('trust proxy')), {times: 0});
 			});
 
 			it('sets up Express Preact views', () => {
-				assert.calledWithExactly(express.mockApp.set, 'views', '/mock-base-path/mock-view-path');
-				assert.calledWithExactly(express.mockApp.set, 'view engine', 'jsx');
-				assert.calledOnce(expressPreactViews.createEngine);
-				assert.calledWithExactly(expressPreactViews.createEngine, 'mock-express-preact-options');
-				assert.calledOnce(express.mockApp.engine);
-				assert.calledWithExactly(express.mockApp.engine, 'jsx', expressPreactViews.mockViewEngine);
+				td.verify(express.mockApp.set('views', '/mock-base-path/mock-view-path'), {times: 1});
+				td.verify(express.mockApp.set('view engine', 'jsx'), {times: 1});
+				td.verify(expressPreactViews.createEngine('mock-express-preact-options'), {times: 1});
+				td.verify(express.mockApp.engine('jsx', expressPreactViews.mockViewEngine), {times: 1});
 			});
 
 			it('creates and mounts Helmet middleware', () => {
-				assert.calledOnce(helmet);
-				assert.calledWithExactly(helmet, 'mock-security-config');
-				assert.calledWith(express.mockApp.use, helmet.mockMiddleware);
+				td.verify(helmet('mock-security-config'), {times: 1});
+				td.verify(express.mockApp.use(helmet.mockMiddleware), {times: 1});
 			});
 
 			it('creates and mounts redirectToHTTPS middleware', () => {
-				assert.calledOnce(expressHttpToHttps.redirectToHTTPS);
-				assert.calledWith(express.mockApp.use, expressHttpToHttps.mockMiddleware);
+				td.verify(expressHttpToHttps.redirectToHTTPS(), {times: 1});
+				td.verify(express.mockApp.use(expressHttpToHttps.mockMiddleware), {times: 1});
 			});
 
 			it('creates and mounts URL-encoded body parser middleware', () => {
-				assert.calledOnce(express.urlencoded);
-				assert.calledWith(express.urlencoded, {
-					extended: false
-				});
-				assert.calledWith(express.mockApp.use, express.urlencoded.mockMiddleware);
+				td.verify(express.urlencoded({extended: false}), {times: 1});
+				td.verify(express.mockApp.use(express.urlencoded.mockMiddleware), {times: 1});
 			});
 
 			it('creates and mounts JSON body parser middleware', () => {
-				assert.calledOnce(express.json);
-				assert.calledWith(express.json, {
-					strict: false
-				});
-				assert.calledWith(express.mockApp.use, express.json.mockMiddleware);
+				td.verify(express.json({strict: false}), {times: 1});
+				td.verify(express.mockApp.use(express.json.mockMiddleware), {times: 1});
 			});
 
 			it('creates a Mongo session store', () => {
-				assert.calledOnce(connectMongo.MongoStore);
-				assert.calledWithNew(connectMongo.MongoStore);
-				assert.calledWith(connectMongo.MongoStore, {
+				td.verify(new connectMongo.MongoStore({
 					mongooseConnection: mongoose.mockConnection
-				});
+				}), {times: 1});
 			});
 
 			it('creates and mounts session middleware', () => {
-				assert.calledOnce(session);
-				const sessionOptions = session.firstCall.args[0];
-				assert.isObject(sessionOptions);
-				assert.strictEqual(sessionOptions.name, 'mock-name Session');
-				assert.isFalse(sessionOptions.resave);
-				assert.isFalse(sessionOptions.saveUninitialized);
-				assert.strictEqual(sessionOptions.secret, 'mock-session-secret');
-				assert.strictEqual(sessionOptions.store, connectMongo.mockMongoStore);
-				assert.calledWith(express.mockApp.use, session.mockMiddleware);
-				assert.isObject(sessionOptions.cookie);
-				assert.strictEqual(sessionOptions.cookie.sameSite, 'lax');
-				assert.strictEqual(sessionOptions.cookie.secure, 'mock-use-secure-cookies');
+				td.verify(session({
+					name: 'mock-name Session',
+					resave: false,
+					saveUninitialized: false,
+					secret: 'mock-session-secret',
+					store: connectMongo.mockMongoStore,
+					cookie: {
+						sameSite: 'lax',
+						secure: 'mock-use-secure-cookies'
+					}
+				}), {times: 1});
+				td.verify(express.mockApp.use(session.mockMiddleware), {times: 1});
 			});
 
 			it('sets `instance.sessionMiddleware` to the created session middleware', () => {
@@ -575,16 +510,16 @@ describe('lib/app', () => {
 			});
 
 			it('logs that sessions have been set up', () => {
-				assert.calledWithExactly(instance.log.info, '[setup:sessions]: sessions set up successfully');
+				td.verify(instance.log.info('[setup:sessions]: sessions set up successfully'));
 			});
 
 			it('creates and mounts flash message middleware', () => {
-				assert.calledOnce(connectFlash);
-				assert.calledWithExactly(connectFlash);
-				assert.calledWith(express.mockApp.use, connectFlash.mockMiddleware);
+				td.verify(connectFlash(), {times: 1});
+				td.verify(express.mockApp.use(connectFlash.mockMiddleware), {times: 1});
 			});
 
 			it('sets `instance.flashMessageMiddleware` to the created flash message middleware', () => {
+
 				assert.strictEqual(instance.flashMessageMiddleware, connectFlash.mockMiddleware);
 			});
 
@@ -593,7 +528,7 @@ describe('lib/app', () => {
 			});
 
 			it('mounts some middleware to add response locals for the current URL and path', () => {
-				const setResponseLocals = express.mockApp.use.getCalls().find(call => {
+				const setResponseLocals = td.explain(express.mockApp.use).calls.find(call => {
 					return (typeof call.args[0] === 'function' && !call.args[0].name);
 				}).args[0];
 				assert.isFunction(setResponseLocals);
@@ -606,7 +541,7 @@ describe('lib/app', () => {
 				let next;
 
 				beforeEach(() => {
-					setResponseLocals = express.mockApp.use.getCalls().find(call => {
+					setResponseLocals = td.explain(express.mockApp.use).calls.find(call => {
 						return (typeof call.args[0] === 'function' && !call.args[0].name);
 					}).args[0];
 					request = {
@@ -616,7 +551,7 @@ describe('lib/app', () => {
 					response = {
 						locals: {}
 					};
-					next = sinon.stub();
+					next = td.func();
 					setResponseLocals(request, response, next);
 				});
 
@@ -633,19 +568,17 @@ describe('lib/app', () => {
 				});
 
 				it('calls `next` with no arguments', () => {
-					assert.calledOnce(next);
-					assert.calledWithExactly(next);
+					td.verify(next(), {times: 1});
 				});
 
 			});
 
 			it('creates and mounts morgan middleware', () => {
-				assert.calledOnce(morgan);
-				assert.calledWith(morgan, 'mock-request-log-format');
-				assert.isObject(morgan.firstCall.args[1]);
-				assert.strictEqual(morgan.firstCall.args[1].stream, 'mock-request-log-output-stream');
-				assert.isFunction(morgan.firstCall.args[1].skip);
-				assert.calledWith(express.mockApp.use, morgan.mockMiddleware);
+				td.verify(morgan('mock-request-log-format', {
+					stream: 'mock-request-log-output-stream',
+					skip: td.matchers.isA(Function)
+				}), {times: 1});
+				td.verify(express.mockApp.use(morgan.mockMiddleware), {times: 1});
 			});
 
 			describe('morgan `skip` option: skip(request)', () => {
@@ -653,7 +586,7 @@ describe('lib/app', () => {
 				let skip;
 
 				beforeEach(() => {
-					skip = morgan.firstCall.args[1].skip;
+					skip = td.explain(morgan).calls[0].args[1].skip;
 					returnValue = skip({
 						path: '/'
 					});
@@ -680,54 +613,46 @@ describe('lib/app', () => {
 			});
 
 			it('initialises controllers', () => {
-				assert.calledOnce(instance.setupControllers);
-				assert.calledWithExactly(instance.setupControllers);
+				td.verify(instance.setupControllers(), {times: 1});
 			});
 
 			it('creates and mounts static middleware', () => {
-				assert.calledOnce(express.static);
-				assert.calledWith(express.static, instance.paths.public, {
-					maxAge: 0
-				});
-				assert.calledWith(express.mockApp.use, express.static.mockMiddleware);
+				td.verify(express.static(instance.paths.public, {maxAge: 0}), {times: 1});
+				td.verify(express.mockApp.use(express.static.mockMiddleware), {times: 1});
 			});
 
 			it('initialises client-side asset compilation', () => {
-				assert.calledOnce(instance.setupClientAssetCompilation);
-				assert.calledWithExactly(instance.setupClientAssetCompilation);
+				td.verify(instance.setupClientAssetCompilation(), {times: 1});
 			});
 
 			it('creates and mounts notFound middleware', () => {
-				assert.calledOnce(notFound);
-				assert.calledWithExactly(notFound);
-				assert.calledWith(express.mockApp.use, notFound.mockMiddleware);
+				td.verify(notFound(), {times: 1});
+				td.verify(express.mockApp.use(notFound.mockMiddleware), {times: 1});
 			});
 
 			it('creates and mounts renderErrorPage middleware', () => {
-				assert.calledOnce(renderErrorPage);
-				assert.isObject(renderErrorPage.firstCall.args[0]);
-				assert.isFunction(renderErrorPage.firstCall.args[0].errorLogger);
-				assert.isFunction(renderErrorPage.firstCall.args[0].errorLoggingFilter);
-				assert.isUndefined(renderErrorPage.firstCall.args[0].errorView);
-				assert.isTrue(renderErrorPage.firstCall.args[0].includeErrorStack);
-				assert.calledWith(express.mockApp.use, renderErrorPage.mockMiddleware);
+				td.verify(renderErrorPage({
+					errorLogger: td.matchers.isA(Function),
+					errorLoggingFilter: td.matchers.isA(Function),
+					includeErrorStack: true
+				}), {times: 1});
+				td.verify(express.mockApp.use(renderErrorPage.mockMiddleware), {times: 1});
 			});
 
 			describe('renderErrorPage `errorLogger` option: errorLogger(error)', () => {
 				let errorLogger;
 
 				beforeEach(() => {
-					errorLogger = renderErrorPage.firstCall.args[0].errorLogger;
+					errorLogger = td.explain(renderErrorPage).calls[0].args[0].errorLogger;
 					const error = new Error('mock error');
 					error.name = 'MockErrorName';
 					error.stack = 'mock error\n  mock stack line 1\n  mock stack line 2';
-					instance.log.error.resetHistory();
+					instance.log.error = td.func();
 					errorLogger(error);
 				});
 
 				it('logs a string version of the error', () => {
-					assert.calledOnce(instance.log.error);
-					assert.calledWithExactly(instance.log.error, 'MockErrorName: mock error {"stack":"mock stack line 1\\nmock stack line 2"}');
+					td.verify(instance.log.error('MockErrorName: mock error {"stack":"mock stack line 1\\nmock stack line 2"}'));
 				});
 
 				describe('when `error.name` is falsy', () => {
@@ -737,13 +662,12 @@ describe('lib/app', () => {
 							message: 'mock error',
 							stack: 'mock error\n  mock stack line 1\n  mock stack line 2'
 						};
-						instance.log.error.resetHistory();
+						instance.log.error = td.func();
 						errorLogger(error);
 					});
 
 					it('logs a string version of the error', () => {
-						assert.calledOnce(instance.log.error);
-						assert.calledWithExactly(instance.log.error, 'Error: mock error {"stack":"mock stack line 1\\nmock stack line 2"}');
+						td.verify(instance.log.error('Error: mock error {"stack":"mock stack line 1\\nmock stack line 2"}'));
 					});
 
 				});
@@ -755,7 +679,7 @@ describe('lib/app', () => {
 				let returnValue;
 
 				beforeEach(() => {
-					errorLoggingFilter = renderErrorPage.firstCall.args[0].errorLoggingFilter;
+					errorLoggingFilter = td.explain(renderErrorPage).calls[0].args[0].errorLoggingFilter;
 					const error = new Error('mock error');
 					returnValue = errorLoggingFilter(error);
 				});
@@ -822,43 +746,32 @@ describe('lib/app', () => {
 
 			});
 
-			it('calls everything in the expected order', () => {
-				assert.callOrder(
-					express,
-					http.createServer,
-					instance.express.use.withArgs(helmet.mockMiddleware),
-					instance.express.use.withArgs(expressHttpToHttps.mockMiddleware),
-					instance.express.use.withArgs(express.urlencoded.mockMiddleware),
-					instance.express.use.withArgs(express.json.mockMiddleware),
-					instance.express.use.withArgs(session.mockMiddleware),
-					instance.express.use.withArgs(morgan.mockMiddleware),
-					instance.express.use.withArgs(express.static.mockMiddleware),
-					instance.express.use.withArgs(notFound.mockMiddleware),
-					instance.express.use.withArgs(renderErrorPage.mockMiddleware)
-				);
-			});
-
 			describe('when `options.env` is "production"', () => {
 
 				beforeEach(() => {
 					instance.env = 'production';
-					express.static.resetHistory();
-					renderErrorPage.resetHistory();
+					express.static = td.func();
 					instance.setupExpress();
 				});
 
 				it('sets the trust proxy option', () => {
-					assert.calledWithExactly(express.mockApp.set, 'trust proxy', 'mock-trust-proxy');
+					td.verify(express.mockApp.set('trust proxy', 'mock-trust-proxy'), {times: 1});
 				});
 
 				it('creates static middleware with the configured `publicCacheMaxAge` option', () => {
-					assert.calledOnce(express.static);
-					assert.strictEqual(express.static.firstCall.args[1].maxAge, 'mock-cache-max-age');
+					td.verify(express.static(), {
+						ignoreExtraArgs: true,
+						times: 1
+					});
+					assert.strictEqual(td.explain(express.static).calls[0].args[1].maxAge, 'mock-cache-max-age');
 				});
 
 				it('creates renderErrorPage middleware without including the error stack', () => {
-					assert.calledOnce(renderErrorPage);
-					assert.isFalse(renderErrorPage.firstCall.args[0].includeErrorStack);
+					td.verify(renderErrorPage(), {
+						ignoreExtraArgs: true,
+						times: 2
+					});
+					assert.isFalse(td.explain(renderErrorPage).calls[1].args[0].includeErrorStack);
 				});
 
 			});
@@ -867,25 +780,27 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					delete instance.options.databaseUrl;
-					connectMongo.MongoStore.resetHistory();
-					session.Store.resetHistory();
-					session.resetHistory();
+					connectMongo.MongoStore = td.func();
 					instance.setupExpress();
 				});
 
 				it('does not create a Mongo session store', () => {
-					assert.notCalled(connectMongo.MongoStore);
+					td.verify(new connectMongo.MongoStore(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
 				it('creates an in-memory session store', () => {
-					assert.calledOnce(session.Store);
-					assert.calledWithNew(session.Store);
-					assert.calledWithExactly(session.Store);
+					td.verify(new session.Store(), {times: 1});
 				});
 
 				it('creates session middleware with the in-memory store', () => {
-					assert.calledOnce(session);
-					assert.strictEqual(session.firstCall.args[0].store, session.mockStore);
+					td.verify(session(), {
+						ignoreExtraArgs: true,
+						times: 2
+					});
+					assert.strictEqual(td.explain(session).calls[1].args[0].store, session.mockStore);
 				});
 
 			});
@@ -894,14 +809,19 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					instance.options.enforceHttps = false;
-					expressHttpToHttps.redirectToHTTPS.resetHistory();
-					express.mockApp.use.resetHistory();
+					expressHttpToHttps.redirectToHTTPS = td.func();
+					express.mockApp.use = td.func();
 					instance.setupExpress();
 				});
 
 				it('does not create and mount redirectToHTTPS middleware', () => {
-					assert.notCalled(expressHttpToHttps.redirectToHTTPS);
-					assert.neverCalledWith(express.mockApp.use, expressHttpToHttps.mockMiddleware);
+					td.verify(expressHttpToHttps.redirectToHTTPS(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
+					td.verify(express.mockApp.use(expressHttpToHttps.mockMiddleware), {
+						times: 0
+					});
 				});
 
 			});
@@ -910,34 +830,36 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					delete instance.options.sessionSecret;
-					connectFlash.resetHistory();
-					connectMongo.MongoStore.resetHistory();
-					session.Store.resetHistory();
-					express.mockApp.use.resetHistory();
-					session.resetHistory();
+					connectMongo.MongoStore = td.func();
+					session.Store = td.func();
+					express.mockApp.use = td.func();
 					instance.setupExpress();
 				});
 
 				it('does not create a Mongo session store', () => {
-					assert.notCalled(connectMongo.MongoStore);
+					td.verify(new connectMongo.MongoStore(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
 				it('does not create an in-memory session store', () => {
-					assert.notCalled(session.Store);
+					td.verify(new session.Store(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
-				it('does not create or mount session middleware', () => {
-					assert.notCalled(session);
-					assert.neverCalledWith(express.mockApp.use, session.mockMiddleware);
+				it('does not mount session middleware', () => {
+					td.verify(express.mockApp.use(session.mockMiddleware), {times: 0});
 				});
 
-				it('does not create or mount flash message middleware', () => {
-					assert.notCalled(connectFlash);
-					assert.neverCalledWith(express.mockApp.use, connectFlash.mockMiddleware);
+				it('does not mount flash message middleware', () => {
+					td.verify(express.mockApp.use(connectFlash.mockMiddleware), {times: 0});
 				});
 
 				it('logs an error to explain that sessions are not configured', () => {
-					assert.calledWith(instance.log.error, '[setup:sessions]: missing "sessionSecret" option, sessions not set up');
+					td.verify(instance.log.error('[setup:sessions]: missing "sessionSecret" option, sessions not set up'));
 				});
 
 			});
@@ -946,14 +868,12 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					delete instance.options.requestLogFormat;
-					morgan.resetHistory();
-					express.mockApp.use.resetHistory();
+					express.mockApp.use = td.func();
 					instance.setupExpress();
 				});
 
-				it('does not create or mount morgan middleware', () => {
-					assert.notCalled(morgan);
-					assert.neverCalledWith(express.mockApp.use, morgan.mockMiddleware);
+				it('does not mount morgan middleware', () => {
+					td.verify(express.mockApp.use(morgan.mockMiddleware), {times: 0});
 				});
 
 			});
@@ -961,36 +881,39 @@ describe('lib/app', () => {
 		});
 
 		describe('.setupControllers()', () => {
+			let mockController1;
+			let mockController2;
 
 			beforeEach(() => {
 				instance.controllers = {};
 				instance.db = mongoose.mockConnection;
 				instance.paths.controller = 'mock-instance-controller-path';
-				requireAll.returns([
-					{
-						name: 'first/mock/name',
-						moduleExports: sinon.stub().returns('FirstMockController')
-					},
-					{
-						name: 'second/mock/name',
-						moduleExports: sinon.stub().returns('SecondMockController')
-					}
+				mockController1 = {
+					name: 'first/mock/name',
+					moduleExports: td.func()
+				};
+				td.when(mockController1.moduleExports(), {ignoreExtraArgs: true}).thenReturn('FirstMockController');
+				mockController2 = {
+					name: 'second/mock/name',
+					moduleExports: td.func()
+				};
+				td.when(mockController2.moduleExports(), {ignoreExtraArgs: true}).thenReturn('SecondMockController');
+				td.when(requireAll(), {ignoreExtraArgs: true}).thenReturn([
+					mockController1,
+					mockController2
 				]);
 				instance.setupControllers();
 			});
 
 			it('requires all of the controllers, camel-casing the names and initialising them', () => {
-				assert.calledOnce(requireAll);
-				assert.calledWithExactly(requireAll, 'mock-instance-controller-path');
-				assert.calledOnce(requireAll.firstCall.returnValue[0].moduleExports);
-				assert.calledWithExactly(requireAll.firstCall.returnValue[0].moduleExports, instance);
-				assert.calledOnce(requireAll.firstCall.returnValue[1].moduleExports);
-				assert.calledWithExactly(requireAll.firstCall.returnValue[1].moduleExports, instance);
+				td.verify(requireAll('mock-instance-controller-path'), {times: 1});
+				td.verify(mockController1.moduleExports(instance), {times: 1});
+				td.verify(mockController2.moduleExports(instance), {times: 1});
 			});
 
 			it('logs that each controller has been initialised', () => {
-				assert.calledWithExactly(instance.log.debug, '[setup:controllers]: "FirstMockName" controller initialised');
-				assert.calledWithExactly(instance.log.debug, '[setup:controllers]: "SecondMockName" controller initialised');
+				td.verify(instance.log.debug('[setup:controllers]: "FirstMockName" controller initialised'));
+				td.verify(instance.log.debug('[setup:controllers]: "SecondMockName" controller initialised'));
 			});
 
 			it('stores initialised controllers on the `controllers` property, camel-casing the names', () => {
@@ -1004,7 +927,7 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					mockError = new Error('mock error');
-					requireAll.throws(mockError);
+					td.when(requireAll(), {ignoreExtraArgs: true}).thenThrow(mockError);
 					try {
 						instance.setupControllers();
 					} catch (error) {
@@ -1024,45 +947,48 @@ describe('lib/app', () => {
 		describe('.setupClientAssetCompilation()', () => {
 
 			beforeEach(() => {
-				express.mockApp.use.resetHistory();
+				express.mockApp.use = td.func();
 				instance.router = express.mockApp;
 				instance.setupClientAssetCompilation();
 			});
 
 			it('creates and mounts Resave Sass middleware, opting not to save compiled files', () => {
-				assert.calledOnce(resaveSass);
-				assert.isObject(resaveSass.firstCall.args[0]);
-				assert.strictEqual(resaveSass.firstCall.args[0].basePath, '/mock-base-path/mock-sass-path');
-				assert.strictEqual(resaveSass.firstCall.args[0].bundles, 'mock-sass-bundles');
-				assert.isFunction(resaveSass.firstCall.args[0].log.error);
-				assert.isFunction(resaveSass.firstCall.args[0].log.info);
-				assert.isNull(resaveSass.firstCall.args[0].savePath);
-				assert.calledWith(express.mockApp.use, resaveSass.mockMiddleware);
+				td.verify(resaveSass({
+					basePath: '/mock-base-path/mock-sass-path',
+					bundles: 'mock-sass-bundles',
+					log: {
+						error: td.matchers.isA(Function),
+						info: td.matchers.isA(Function)
+					},
+					savePath: null
+				}), {times: 1});
+				td.verify(express.mockApp.use(resaveSass.mockMiddleware), {times: 1});
 			});
 
 			it('uses bound logging functions in the Resave Sass configuration', () => {
-				instance.log.error.resetHistory();
-				instance.log.info.resetHistory();
-				resaveSass.firstCall.args[0].log.error('mock error');
-				assert.calledOnce(instance.log.error);
-				assert.calledWithExactly(instance.log.error, '[assets:sass]:', 'mock error');
-				resaveSass.firstCall.args[0].log.info('mock info');
-				assert.calledOnce(instance.log.info);
-				assert.calledWithExactly(instance.log.info, '[assets:sass]:', 'mock info');
+				const log = td.explain(resaveSass).calls[0].args[0].log;
+				log.error('mock error');
+				td.verify(instance.log.error('[assets:sass]:', 'mock error'), {times: 1});
+				log.info('mock info');
+				td.verify(instance.log.info('[assets:sass]:', 'mock info'), {times: 1});
 			});
 
 			describe('when `options.env` is "production"', () => {
 
 				beforeEach(() => {
 					instance.env = 'production';
-					resaveSass.resetHistory();
 					instance.setupClientAssetCompilation();
 				});
 
 				it('creates and mounts Resave Sass middleware, saving compiled files', () => {
-					assert.calledOnce(resaveSass);
-					assert.isObject(resaveSass.firstCall.args[0]);
-					assert.strictEqual(resaveSass.firstCall.args[0].savePath, '/mock-base-path/mock-public-path');
+					td.verify(resaveSass(), {
+						ignoreExtraArgs: true,
+						times: 2
+					});
+					assert.strictEqual(
+						td.explain(resaveSass).calls[1].args[0].savePath,
+						'/mock-base-path/mock-public-path'
+					);
 				});
 
 			});
@@ -1073,25 +999,24 @@ describe('lib/app', () => {
 
 			beforeEach(() => {
 				instance.server = http.mockServer;
-				instance.server.listen.yields();
-				os.hostname.returns('mock-os-hostname');
+				td.when(instance.server.listen('mock-port')).thenCallback();
+				td.when(os.hostname()).thenReturn('mock-os-hostname');
 				http.mockAddress.port = 'mock-server-address-port';
 				instance.startServer();
 			});
 
 			it('starts the HTTP server listening on the given `port` option', () => {
-				assert.calledOnce(instance.server.listen);
-				assert.calledWith(instance.server.listen, 'mock-port');
-				assert.isFunction(instance.server.listen.firstCall.args[1]);
+				td.verify(instance.server.listen('mock-port', td.matchers.isA(Function)), {
+					times: 1
+				});
 			});
 
 			it('logs that the server has started', () => {
-				assert.calledWith(instance.log.info, '[setup:server]: started successfully http://mock-os-hostname:mock-server-address-port');
+				td.verify(instance.log.info('[setup:server]: started successfully http://mock-os-hostname:mock-server-address-port'));
 			});
 
 			it('emits a `server:started` event, passing the server to that', () => {
-				assert.calledOnce(instance.emit);
-				assert.calledWithExactly(instance.emit, 'server:started', instance.server);
+				td.verify(instance.emit('server:started', instance.server), {times: 1});
 			});
 
 			describe('when listening on the port fails', () => {
@@ -1099,10 +1024,10 @@ describe('lib/app', () => {
 				let mockError;
 
 				beforeEach(() => {
-					instance.emit.resetHistory();
+					instance.emit = td.func();
+					instance.log.info = td.func();
 					mockError = new Error('mock error');
-					instance.server.listen.yields(mockError);
-					instance.log.info.resetHistory();
+					td.when(instance.server.listen('mock-port')).thenCallback(mockError);
 					try {
 						instance.startServer();
 					} catch (error) {
@@ -1111,15 +1036,18 @@ describe('lib/app', () => {
 				});
 
 				it('logs that the application has failed to start', () => {
-					assert.calledWith(instance.log.error, '[setup:server]: failed to start');
+					td.verify(instance.log.error('[setup:server]: failed to start'));
 				});
 
 				it('does not log that the application has started', () => {
-					assert.notCalled(instance.log.info);
+					td.verify(instance.log.info(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
 				it('does not emit a `server:started` event', () => {
-					assert.neverCalledWith(instance.emit, 'server:started', instance.server);
+					td.verify(instance.emit('server:started', instance.server), {times: 0});
 				});
 
 				it('does not throw the error', () => {
@@ -1127,8 +1055,7 @@ describe('lib/app', () => {
 				});
 
 				it('emits a `setup:error` event, passing the error to that', () => {
-					assert.calledOnce(instance.emit);
-					assert.calledWithExactly(instance.emit, 'setup:error', mockError);
+					td.verify(instance.emit('setup:error', mockError), {times: 1});
 				});
 
 			});
@@ -1144,19 +1071,17 @@ describe('lib/app', () => {
 			});
 
 			it('closes the server connection', () => {
-				assert.calledOnce(instance.server.close);
-				assert.isFunction(instance.server.close.firstCall.args[0]);
+				td.verify(instance.server.close(td.matchers.isA(Function)), {times: 1});
 			});
 
 			it('closes the database connection', () => {
-				assert.calledOnce(instance.db.close);
-				assert.isFunction(instance.db.close.firstCall.args[0]);
+				td.verify(instance.db.close(td.matchers.isA(Function)), {times: 1});
 			});
 
 			describe('server close callback', () => {
 
 				beforeEach(() => {
-					instance.server.close.firstCall.args[0]();
+					td.explain(instance.server.close).calls[0].args[0]();
 				});
 
 				it('deletes the `server` property', () => {
@@ -1164,7 +1089,7 @@ describe('lib/app', () => {
 				});
 
 				it('logs that the server has stopped', () => {
-					assert.calledWith(instance.log.info, '[teardown:server]: stopped successfully');
+					td.verify(instance.log.info('[teardown:server]: stopped successfully'));
 				});
 
 			});
@@ -1172,7 +1097,7 @@ describe('lib/app', () => {
 			describe('database close callback', () => {
 
 				beforeEach(() => {
-					instance.db.close.firstCall.args[0]();
+					td.explain(instance.db.close).calls[0].args[0]();
 				});
 
 				it('deletes the `db` property', () => {
@@ -1180,7 +1105,7 @@ describe('lib/app', () => {
 				});
 
 				it('logs that the database connection has been closed', () => {
-					assert.calledWith(instance.log.info, '[teardown:database]: closed connection successfully');
+					td.verify(instance.log.info('[teardown:database]: closed connection successfully'));
 				});
 
 			});
@@ -1188,13 +1113,16 @@ describe('lib/app', () => {
 			describe('when `instance.server` is not set', () => {
 
 				beforeEach(() => {
-					http.mockServer.close.resetHistory();
+					http.mockServer.close = td.func();
 					delete instance.server;
 					instance.teardown();
 				});
 
 				it('does not attempt to stop the server', () => {
-					assert.notCalled(http.mockServer.close);
+					td.verify(http.mockServer.close(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
 			});
@@ -1202,13 +1130,16 @@ describe('lib/app', () => {
 			describe('when `instance.db` is not set', () => {
 
 				beforeEach(() => {
-					mongoose.mockConnection.close.resetHistory();
+					mongoose.mockConnection.close = td.func();
 					delete instance.db;
 					instance.teardown();
 				});
 
 				it('does not attempt to close the database connection', () => {
-					assert.notCalled(mongoose.mockConnection.close);
+					td.verify(mongoose.mockConnection.close(), {
+						ignoreExtraArgs: true,
+						times: 0
+					});
 				});
 
 			});
@@ -1265,7 +1196,7 @@ describe('lib/app', () => {
 			describe('when `NODE_ENV` is not set', () => {
 
 				beforeEach(() => {
-					global.refreshAllMocking();
+					// Global.refreshAllMocking();
 					delete process.env.NODE_ENV;
 					App = require('../../../lib/app');
 				});
@@ -1321,7 +1252,7 @@ describe('lib/app', () => {
 			describe('when `PORT` is not set', () => {
 
 				beforeEach(() => {
-					global.refreshAllMocking();
+					// Global.refreshAllMocking();
 					delete process.env.PORT;
 					App = require('../../../lib/app');
 				});
@@ -1474,13 +1405,18 @@ describe('lib/app', () => {
 				useSecureCookies: 'mock-use-secure-cookies',
 				mockDefaultedOptions: true
 			};
-			sinon.stub(Object, 'assign').returns(defaultedOptions);
+			td.replace(Object, 'assign');
+			td.when(Object.assign(), {ignoreExtraArgs: true}).thenReturn(defaultedOptions);
 			returnValue = App.applyDefaultOptions(userOptions);
 		});
 
 		it('defaults the `options`', () => {
-			assert.calledOnce(Object.assign);
-			assert.calledWith(Object.assign, {}, App.defaultOptions, App.defaultOptions, userOptions);
+			td.verify(Object.assign(
+				{},
+				App.defaultOptions,
+				App.defaultOptions,
+				userOptions
+			), {times: 1});
 		});
 
 		it('returns the defaulted options with some transformations', () => {

@@ -1,9 +1,9 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const morgan = sinon.stub();
-morgan.mockMiddleware = sinon.stub();
-morgan.returns(morgan.mockMiddleware);
+const morgan = td.func('morgan');
+morgan.mockMiddleware = td.func('morgan middleware');
+td.when(morgan(), {ignoreExtraArgs: true}).thenReturn(morgan.mockMiddleware);
 
 module.exports = morgan;

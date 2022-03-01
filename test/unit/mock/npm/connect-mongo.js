@@ -1,12 +1,13 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const connectMongo = sinon.stub();
+const connectMongo = td.func();
 connectMongo.mockMongoStore = {
 	isMockMongoStore: true
 };
-connectMongo.MongoStore = sinon.stub().returns(connectMongo.mockMongoStore);
-connectMongo.returns(connectMongo.MongoStore);
+connectMongo.MongoStore = td.func();
+td.when(new connectMongo.MongoStore(), {ignoreExtraArgs: true}).thenReturn(connectMongo.mockMongoStore);
+td.when(connectMongo(), {ignoreExtraArgs: true}).thenReturn(connectMongo.MongoStore);
 
 module.exports = connectMongo;

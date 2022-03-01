@@ -15,7 +15,18 @@
   "bugs": "https://github.com/rowanmanning/app/issues",
   "license": "MIT",
   "engines": {
-    "node": ">=14"
+    "node": ">=14",
+    "npm": ">=7"
+  },
+  "scripts": {
+    "example-basic": "nodemon ./example/basic",
+    "example-todo": "nodemon ./example/todo",
+    "verify": "eslint .",
+    "test:unit": "mocha 'test/unit/**/*.test.js'",
+    "test:coverage": "nyc npm run test:unit",
+    "test": "npm run test:coverage",
+    "project:verify": "npx --yes @rowanmanning/validate-project --type git node-library",
+    "project:fix": "npx --yes @rowanmanning/validate-project --type git node-library --fix"
   },
   "dependencies": {
     "@rowanmanning/not-found": "^1.0.2",
@@ -36,20 +47,23 @@
     "varname": "^2.0.3"
   },
   "devDependencies": {
-    "@rowanmanning/eslint-config": "^3.1.0",
-    "@rowanmanning/make": "^2.1.0",
-    "eslint": "^7.16.0",
-    "mocha": "^8.2.1",
-    "mockery": "^2.1.0",
+    "@rowanmanning/eslint-config": "^3.3.0",
+    "chai": "^4.3.6",
+    "eslint": "^8.10.0",
+    "mocha": "^9.2.1",
     "nodemon": "^2.0.6",
     "nyc": "^15.1.0",
-    "proclaim": "^3.6.0",
-    "sinon": "^9.2.1"
+    "testdouble": "^3.16.4"
   },
-  "main": "./lib/index.js",
-  "scripts": {
-    "test": "make ci",
-    "example-basic": "nodemon ./example/basic",
-    "example-todo": "nodemon ./example/todo"
+  "main": "lib/app.js",
+  "nyc": {
+    "eager": true,
+    "reporter": [
+      "html",
+      "text"
+    ]
+  },
+  "mocha": {
+    "timeout": 10000
   }
 }

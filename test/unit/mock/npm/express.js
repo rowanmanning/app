@@ -1,31 +1,31 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const express = sinon.stub();
+const express = td.func();
 express.mockApp = {
-	enable: sinon.stub(),
-	engine: sinon.stub(),
+	enable: td.func(),
+	engine: td.func(),
 	locals: {},
-	set: sinon.stub(),
-	use: sinon.stub()
+	set: td.func(),
+	use: td.func()
 };
-express.returns(express.mockApp);
+td.when(express(), {ignoreExtraArgs: true}).thenReturn(express.mockApp);
 
 express.mockAddress = {
 	port: 'mock-address-port'
 };
 
-express.json = sinon.stub();
-express.json.mockMiddleware = sinon.stub();
-express.json.returns(express.json.mockMiddleware);
+express.json = td.func('express.json');
+express.json.mockMiddleware = td.func('express.json middleware');
+td.when(express.json(), {ignoreExtraArgs: true}).thenReturn(express.json.mockMiddleware);
 
-express.static = sinon.stub();
-express.static.mockMiddleware = sinon.stub();
-express.static.returns(express.static.mockMiddleware);
+express.static = td.func('express.static');
+express.static.mockMiddleware = td.func('express.static middleware');
+td.when(express.static(), {ignoreExtraArgs: true}).thenReturn(express.static.mockMiddleware);
 
-express.urlencoded = sinon.stub();
-express.urlencoded.mockMiddleware = sinon.stub();
-express.urlencoded.returns(express.urlencoded.mockMiddleware);
+express.urlencoded = td.func('express.urlencoded');
+express.urlencoded.mockMiddleware = td.func('express.urlencoded middleware');
+td.when(express.urlencoded(), {ignoreExtraArgs: true}).thenReturn(express.urlencoded.mockMiddleware);
 
 module.exports = express;

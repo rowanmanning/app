@@ -1,8 +1,10 @@
 'use strict';
 
-const sinon = require('sinon');
-const varname = require('varname');
+const td = require('testdouble');
 
-module.exports = {
-	camelcase: sinon.spy(varname.camelcase)
-};
+const camelcase = td.func();
+
+td.when(camelcase('first/mock/name')).thenReturn('FirstMockName');
+td.when(camelcase('second/mock/name')).thenReturn('SecondMockName');
+
+module.exports = {camelcase};

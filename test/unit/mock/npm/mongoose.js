@@ -1,9 +1,9 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
 const mongoose = {
-	createConnection: sinon.stub(),
+	createConnection: td.func(),
 	Error: {
 		ValidationError: 'mock-validation-error'
 	},
@@ -11,10 +11,10 @@ const mongoose = {
 	SchemaType: 'mock-schema-type'
 };
 mongoose.mockConnection = {
-	close: sinon.stub(),
-	model: sinon.stub(),
-	on: sinon.stub()
+	close: td.func(),
+	model: td.func(),
+	on: td.func()
 };
-mongoose.createConnection.returns(mongoose.mockConnection);
+td.when(mongoose.createConnection(), {ignoreExtraArgs: true}).thenReturn(mongoose.mockConnection);
 
 module.exports = mongoose;

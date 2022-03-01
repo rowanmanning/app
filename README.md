@@ -181,12 +181,7 @@ There are also a few example implementations in the repo which demonstrate some 
 
 ## Contributing
 
-To contribute to this library, clone this repo locally and commit your code on a separate branch. Please write unit tests for your code, and run the linter before opening a pull-request:
-
-```sh
-make test    # run all tests
-make verify  # run all linters
-```
+[The contributing guide is available here](docs/contributing.md). All contributors must follow [this library's code of conduct](docs/code_of_conduct.md).
 
 
 ## License

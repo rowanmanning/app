@@ -1,9 +1,9 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const notFound = sinon.stub();
-notFound.mockMiddleware = sinon.stub();
-notFound.returns(notFound.mockMiddleware);
+const notFound = td.func('notFound');
+notFound.mockMiddleware = td.func('notFound middleware');
+td.when(notFound(), {ignoreExtraArgs: true}).thenReturn(notFound.mockMiddleware);
 
 module.exports = notFound;

@@ -1,8 +1,8 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
 class EventEmitter {}
-EventEmitter.prototype.emit = sinon.stub();
+EventEmitter.prototype.emit = td.func('EventEmitter.prototype.emit');
 
 module.exports = EventEmitter;

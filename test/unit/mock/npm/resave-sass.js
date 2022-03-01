@@ -1,9 +1,9 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const resaveSass = sinon.stub();
-resaveSass.mockMiddleware = sinon.stub();
-resaveSass.returns(resaveSass.mockMiddleware);
+const resaveSass = td.func('resaveSass');
+resaveSass.mockMiddleware = td.func('resaveSass middleware');
+td.when(resaveSass(), {ignoreExtraArgs: true}).thenReturn(resaveSass.mockMiddleware);
 
 module.exports = resaveSass;

@@ -1,9 +1,9 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
-const renderErrorPage = sinon.stub();
-renderErrorPage.mockMiddleware = sinon.stub();
-renderErrorPage.returns(renderErrorPage.mockMiddleware);
+const renderErrorPage = td.func('renderErrorPage');
+renderErrorPage.mockMiddleware = td.func('renderErrorPage middleware');
+td.when(renderErrorPage(), {ignoreExtraArgs: true}).thenReturn(renderErrorPage.mockMiddleware);
 
 module.exports = renderErrorPage;

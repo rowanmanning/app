@@ -1,11 +1,11 @@
 'use strict';
 
-const sinon = require('sinon');
+const td = require('testdouble');
 
 const expressHttpToHttps = {
-	mockMiddleware: sinon.stub(),
-	redirectToHTTPS: sinon.stub()
+	mockMiddleware: td.func('redirectToHTTPS middleware'),
+	redirectToHTTPS: td.func('redirectToHTTPS')
 };
-expressHttpToHttps.redirectToHTTPS.returns(expressHttpToHttps.mockMiddleware);
+td.when(expressHttpToHttps.redirectToHTTPS(), {ignoreExtraArgs: true}).thenReturn(expressHttpToHttps.mockMiddleware);
 
 module.exports = expressHttpToHttps;
