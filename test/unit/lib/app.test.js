@@ -48,10 +48,6 @@ describe('lib/app', () => {
 		App = require('../../../lib/app');
 	});
 
-	it('creates a MongoStore using the session middleware', () => {
-		td.verify(connectMongo(session), {times: 1});
-	});
-
 	describe('new App(options)', () => {
 		let defaultedOptions;
 		let instance;
@@ -269,12 +265,7 @@ describe('lib/app', () => {
 			});
 
 			it('creates a Mongoose connection using `options.databaseUrl`', () => {
-				td.verify(mongoose.createConnection('mock-database-url', {
-					useCreateIndex: true,
-					useFindAndModify: false,
-					useNewUrlParser: true,
-					useUnifiedTopology: true
-				}), {times: 1});
+				td.verify(mongoose.createConnection('mock-database-url'), {times: 1});
 			});
 
 			it('sets `instance.db` to the created Mongoose connection', () => {
@@ -485,8 +476,9 @@ describe('lib/app', () => {
 			});
 
 			it('creates a Mongo session store', () => {
-				td.verify(new connectMongo.MongoStore({
-					mongooseConnection: mongoose.mockConnection
+				td.verify(mongoose.mockConnection.getClient(), {times: 1});
+				td.verify(connectMongo.create({
+					client: 'mock-mongoose-client'
 				}), {times: 1});
 			});
 
@@ -780,12 +772,12 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					delete instance.options.databaseUrl;
-					connectMongo.MongoStore = td.func();
+					connectMongo.create = td.func();
 					instance.setupExpress();
 				});
 
 				it('does not create a Mongo session store', () => {
-					td.verify(new connectMongo.MongoStore(), {
+					td.verify(connectMongo.create(), {
 						ignoreExtraArgs: true,
 						times: 0
 					});
@@ -830,14 +822,14 @@ describe('lib/app', () => {
 
 				beforeEach(() => {
 					delete instance.options.sessionSecret;
-					connectMongo.MongoStore = td.func();
+					connectMongo.create = td.func();
 					session.Store = td.func();
 					express.mockApp.use = td.func();
 					instance.setupExpress();
 				});
 
 				it('does not create a Mongo session store', () => {
-					td.verify(new connectMongo.MongoStore(), {
+					td.verify(connectMongo.create(), {
 						ignoreExtraArgs: true,
 						times: 0
 					});
