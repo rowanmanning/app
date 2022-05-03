@@ -44,7 +44,7 @@
     "morgan": "^1.10.0",
     "preact": "^10.6.6",
     "resave-sass": "^2.0.0",
-    "varname": "^3.0.0"
+    "varname": "^4.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.4",
