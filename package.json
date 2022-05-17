@@ -47,7 +47,7 @@
     "varname": "^4.0.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^16.2.4",
+    "@commitlint/cli": "^17.0.0",
     "@commitlint/config-conventional": "^16.2.4",
     "@rowanmanning/eslint-config": "^3.3.0",
     "chai": "^4.3.6",
