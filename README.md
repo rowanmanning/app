@@ -5,7 +5,7 @@ Build Express applications with all of my preferences baked in.
 
 ## Should I use this?
 
-Not really. Unless you're Rowan Manning.
+Not really. Unless you're Rowan Manning. Even then it's not advisable because this does too much - use [express-config](https://github.com/rowanmanning/express-config) instead.
 
 
 ## Table of Contents
