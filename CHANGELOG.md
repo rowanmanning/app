@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.0.0-alpha.30](https://github.com/rowanmanning/app/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2022-07-09)
+
+
+### Features
+
+* bump mongoose from 6.3.8 to 6.4.2 ([b9c96f4](https://github.com/rowanmanning/app/commit/b9c96f4d2fbe01850ccb8660ba92a04322e0530b))
+* bump preact from 10.7.3 to 10.8.2 ([2af4c01](https://github.com/rowanmanning/app/commit/2af4c01ce85217f3ff21e35558bde24a1232322b))
+* bump preact from 10.8.2 to 10.9.0 ([7748e78](https://github.com/rowanmanning/app/commit/7748e788815f9192fb52e09b6694f56999a2fb22))
+
+
+### Bug Fixes
+
+* bump mongoose from 6.3.5 to 6.3.6 ([ca67601](https://github.com/rowanmanning/app/commit/ca67601a10cc7cab076bfdc14c59b3991e2ccd3d))
+* bump mongoose from 6.3.6 to 6.3.8 ([d86a951](https://github.com/rowanmanning/app/commit/d86a9512f3afd8d2a265a4120ccaaf0e399e2528))
+* bump mongoose from 6.4.2 to 6.4.4 ([63ed5c2](https://github.com/rowanmanning/app/commit/63ed5c2018294a29bffccba38f63cbc6603f4c35))
+* bump preact from 10.7.2 to 10.7.3 ([e468db0](https://github.com/rowanmanning/app/commit/e468db0b016b9e18960b2ff8c681ba7c4e80807e))
+* bump varname from 4.0.1 to 4.1.0 ([f064a78](https://github.com/rowanmanning/app/commit/f064a783d0431b19487fe38ce65d1445faa94080))
+
+
+### Miscellaneous
+
+* bump @commitlint/cli from 17.0.1 to 17.0.2 ([e54d349](https://github.com/rowanmanning/app/commit/e54d349076c2bbfdc39374eb8eb9672e6026bc5a))
+* bump @commitlint/cli from 17.0.2 to 17.0.3 ([2e1152c](https://github.com/rowanmanning/app/commit/2e1152c65729b98c15c3b4f15692e0ac2ce6678f))
+* bump @commitlint/config-conventional from 17.0.0 to 17.0.2 ([db4d6b6](https://github.com/rowanmanning/app/commit/db4d6b68ee94a29945321087fb3844dc1b79333d))
+* bump @commitlint/config-conventional from 17.0.2 to 17.0.3 ([8409d8d](https://github.com/rowanmanning/app/commit/8409d8dcd737f503736fcddc66d820f9cdaf4eab))
+* bump @rowanmanning/eslint-config from 3.5.0 to 4.0.2 ([756bf0c](https://github.com/rowanmanning/app/commit/756bf0c4f49eccbb6aedaada41f812a98664f96b))
+* bump @rowanmanning/not-found from 3.0.3 to 3.1.0 ([617364e](https://github.com/rowanmanning/app/commit/617364eaf3463b4c5f5ea60f0c5fa5bca297273b))
+* bump @rowanmanning/render-error-page from 3.0.1 to 3.1.0 ([374bbbe](https://github.com/rowanmanning/app/commit/374bbbea7730ee8463749837c34058416818e112))
+* bump @rowanmanning/require-all from 2.1.1 to 2.2.0 ([9fba854](https://github.com/rowanmanning/app/commit/9fba8549509bffa9c2d4dd2ba939acd03fce7e32))
+* bump eslint from 8.16.0 to 8.17.0 ([ec324a4](https://github.com/rowanmanning/app/commit/ec324a45f69fa63bb86066fd1838c14299072ea5))
+* bump eslint from 8.17.0 to 8.19.0 ([ff7ff75](https://github.com/rowanmanning/app/commit/ff7ff75a762970f2e07e68d6b1b4c3fceffb12b7))
+* bump nodemon from 2.0.16 to 2.0.18 ([8084cb7](https://github.com/rowanmanning/app/commit/8084cb7ab440f49fd1c47ad4a870c32a8d8e66b5))
+* bump nodemon from 2.0.18 to 2.0.19 ([b69de3c](https://github.com/rowanmanning/app/commit/b69de3c6369f347bb43d0c051548eb5203e2d420))
+* bump testdouble from 3.16.5 to 3.16.6 ([9f8b3b9](https://github.com/rowanmanning/app/commit/9f8b3b97e8fe6c0570219cad48f0e63899e09d16))
+* fix eslint issues ([0dca7b2](https://github.com/rowanmanning/app/commit/0dca7b27dd845894b0f0d95bc7ecd39120ab42ba))
+
 ## [1.0.0-alpha.29](https://github.com/rowanmanning/app/compare/v1.0.0-alpha.28...v1.0.0-alpha.29) (2022-06-01)
 
 
