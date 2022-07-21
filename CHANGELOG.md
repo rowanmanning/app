@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.31](https://github.com/rowanmanning/app/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2022-07-21)
+
+
+### Bug Fixes
+
+* bump mongoose from 6.4.4 to 6.4.5 ([15f5199](https://github.com/rowanmanning/app/commit/15f5199f902c738e46e05455e38e95d9da3f6c99))
+* bump mongoose from 6.4.5 to 6.4.6 ([8ea053b](https://github.com/rowanmanning/app/commit/8ea053bffa739d583a44ee01fe0ee0dddfb60b98))
+* bump preact from 10.9.0 to 10.10.0 ([5d8db4f](https://github.com/rowanmanning/app/commit/5d8db4f3d8b2eb43feaf37087d1fca5267a9a918))
+* hide the misc changelog section ([f7be95e](https://github.com/rowanmanning/app/commit/f7be95ef6a918da50ec01655947b87b05aded3a5))
+
 ## [1.0.0-alpha.30](https://github.com/rowanmanning/app/compare/v1.0.0-alpha.29...v1.0.0-alpha.30) (2022-07-09)
 
 
