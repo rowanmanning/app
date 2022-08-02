@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-alpha.32](https://github.com/rowanmanning/app/compare/v1.0.0-alpha.31...v1.0.0-alpha.32) (2022-08-02)
+
+
+### Bug Fixes
+
+* bump helmet from 5.1.0 to 5.1.1 ([5361314](https://github.com/rowanmanning/app/commit/5361314d33526a3c98056311d0f4294058c842e6))
+* bump mongoose from 6.4.6 to 6.5.0 ([b0823e5](https://github.com/rowanmanning/app/commit/b0823e53c8bf928fa0f2de99637e05118bdc87b3))
+
 ## [1.0.0-alpha.31](https://github.com/rowanmanning/app/compare/v1.0.0-alpha.30...v1.0.0-alpha.31) (2022-07-21)
 
 
