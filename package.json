@@ -39,7 +39,7 @@
     "express-http-to-https": "^1.1.4",
     "express-preact-views": "^1.1.0",
     "express-session": "^1.17.2",
-    "helmet": "^5.0.2",
+    "helmet": "^6.0.0",
     "mongoose": "^6.2.4",
     "morgan": "^1.10.0",
     "preact": "^10.6.6",
